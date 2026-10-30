@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dopa-Math</title>
+<style>
+:root{color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg1:#fff0f7;--bg2:#e6efff;--card:#ffffff;--text:#1d1536;--sub:#6e6890;--pink:#ff2d8f;--ok:#0fbf6a;--ng:#ff4a4a;--gold:#ffb300;--cyan:#00d8f0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#1b0a33;--bg2:#08183a;--card:#2a1d52;--text:#f6f2ff;--sub:#b0a8dc}}
+:root[data-theme="dark"]{--bg1:#1b0a33;--bg2:#08183a;--card:#2a1d52;--text:#f6f2ff;--sub:#b0a8dc}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(160deg,var(--bg1),var(--bg2));color:var(--text);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+body.fever{background:linear-gradient(120deg,#ff2d8f,#ffb300,#7a3cff,#00c2ff);background-size:300% 300%;animation:fv 1.2s linear infinite}
+@keyframes fv{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+button{font-family:inherit}
+#app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto;padding:10px 16px 14px}
+.hud{display:flex;align-items:center;gap:10px;font-weight:800}
+.hud button{background:none;border:0;font-size:22px;cursor:pointer;color:inherit;padding:2px 4px}
+#stg{font-size:13px;background:var(--card);border-radius:99px;padding:3px 10px;white-space:nowrap}
+#sc{font-size:26px;font-variant-numeric:tabular-nums;margin-left:auto}
+#cb{font-size:16px;color:var(--pink);min-width:74px;text-align:right}
+body.fever #cb{color:#fff}
+.bar{height:10px;border-radius:99px;background:rgba(127,127,160,.25);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--gold));border-radius:99px;transition:width .3s}
+/* 親黙らせ（TikTok解禁）ゲージ */
+.oya{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;margin-top:6px}
+.oya .bar{flex:1;margin:0;height:12px}
+.oya .bar i{background:linear-gradient(90deg,#00f2ea,#ff0050)}
+.oya b{white-space:nowrap;font-size:12px}
+.oya.full b{color:var(--pink)}
+.prog{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;font-weight:800;color:var(--sub)}
+#heartsP{letter-spacing:-2px;font-size:13px}
+/* 1問ごとの制限時間。左の明るい区間がスピードボーナス圏内 */
+.tbar{position:absolute;top:0;left:0;right:0;height:8px;border-radius:30px 30px 0 0;overflow:hidden;background:rgba(127,127,160,.18)}
+.tbar i{display:block;height:100%;width:100%;background:var(--ok);transform-origin:left;will-change:transform}
+.tbar i.mid{background:var(--gold)}
+.tbar i.low{background:var(--ng)}
+.tbar b{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.9)}
+.prog .bar{flex:1;margin:0;height:6px}
+/* ボス */
+.boss{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:20px;padding:6px 12px;margin-top:8px;position:relative}
+.bemo{font-size:44px;line-height:1;transition:filter .2s}
+.bemo.hit{animation:bhit .35s}
+.bemo.atk{animation:batk .45s}
+.bemo.dead{animation:bdead .8s forwards}
+@keyframes bhit{30%{transform:translateX(8px) rotate(12deg);filter:brightness(2.2)}60%{transform:translateX(-6px)}}
+@keyframes batk{40%{transform:scale(1.6) translateY(14px)}}
+@keyframes bdead{to{transform:scale(.2) rotate(360deg);opacity:0}}
+.binfo{flex:1;min-width:0}
+.bname{display:flex;justify-content:space-between;font-size:13px;font-weight:900}
+#hearts{letter-spacing:-2px;font-size:13px}
+.bar.hp{height:14px;margin-top:4px}
+.bar.hp i{background:linear-gradient(90deg,#ff4a4a,#ff9a3c)}
+.dmg{position:absolute;left:64px;right:0;top:8px;text-align:center;font-size:22px;font-weight:900;color:#ff4a4a;text-shadow:0 2px 8px rgba(0,0,0,.3);opacity:0;pointer-events:none}
+.dmg.crit{color:var(--gold);font-size:24px}
+.dmg.go{animation:pop .7s ease-out}
+#flash{position:fixed;inset:0;background:#ff0033;opacity:0;pointer-events:none;z-index:20}
+#flash.go{animation:flash .35s}
+@keyframes flash{30%{opacity:.35}}
+.bigshake{animation:bsh .45s}
+@keyframes bsh{15%{transform:translate(-14px,6px)}30%{transform:translate(12px,-8px)}45%{transform:translate(-10px,4px)}60%{transform:translate(8px,-4px)}80%{transform:translate(-4px,2px)}}
+/* 問題カード */
+#stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;margin-top:10px}
+#fev{position:absolute;top:0;left:0;right:0;text-align:center;font-size:26px;font-weight:900;color:#fff;letter-spacing:.05em;text-shadow:0 2px 12px rgba(0,0,0,.35);animation:pulse .4s ease-in-out infinite alternate;z-index:2;pointer-events:none}
+@keyframes pulse{to{transform:scale(1.12)}}
+.card{position:relative;width:100%;max-width:420px;height:100%;max-height:320px;background:var(--card);border-radius:30px;box-shadow:0 18px 50px rgba(80,30,140,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;will-change:transform}
+.card.hit{box-shadow:0 0 0 6px var(--ok),0 18px 50px rgba(80,30,140,.28)}
+.card.miss{box-shadow:0 0 0 6px var(--ng),0 18px 50px rgba(80,30,140,.28)}
+.card.weakfx{animation:wk .5s}
+@keyframes wk{30%{transform:scale(.92) rotate(-2deg);box-shadow:0 0 0 8px #a855f7,0 0 40px #a855f7}}
+.weak{position:absolute;top:12px;right:12px;border:0;border-radius:99px;padding:6px 12px;font-size:13px;font-weight:900;color:#fff;background:linear-gradient(90deg,#a855f7,#6d28d9);cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.weak:disabled{opacity:.35;cursor:default}
+.weak b{background:rgba(255,255,255,.25);border-radius:99px;padding:0 6px;margin-left:2px}
+#eq{text-align:center;font-weight:900;line-height:1.2;padding:22px 12px 0;width:100%}
+#eqQ{font-size:clamp(30px,9vw,44px);font-variant-numeric:tabular-nums;margin-bottom:8px}
+#eqQ.s{font-size:clamp(24px,7vw,34px)}
+#eqQ.xs{font-size:clamp(19px,5.6vw,27px)}
+#eqQ .op{margin:0 .2em}
+#eqQ sup{font-size:.55em}
+#eqQ .fr{display:inline-flex;flex-direction:column;vertical-align:middle;font-size:.66em;line-height:1.08;text-align:center;margin:0 .06em}
+#eqQ .fr span:first-child{border-bottom:.09em solid currentColor;padding:0 .12em}
+#eqQ .tk{transition:opacity .35s,color .35s,text-shadow .35s}
+#eqQ.dim .tk{opacity:.22}
+#eqQ.dim .hl .tk{opacity:1;color:#ff2d8f;text-shadow:0 0 6px #ff2d8f,0 0 18px #ff7ac0}
+#eqQ.dim .tk.hs{opacity:1;color:var(--cyan);text-shadow:0 0 6px var(--cyan),0 0 18px var(--cyan)}
+#eqR{font-size:clamp(44px,14vw,64px);color:var(--pink);font-variant-numeric:tabular-nums}
+#eqR .ph{opacity:.3;animation:blink 1s steps(2) infinite}
+#eqR.rev{color:var(--ng);font-size:clamp(30px,9vw,44px)}
+@keyframes blink{50%{opacity:.08}}
+.hint{position:absolute;bottom:14px;font-size:12px;color:var(--sub)}
+#pop{position:absolute;top:28%;left:0;right:0;text-align:center;font-size:42px;font-weight:900;color:var(--gold);text-shadow:0 3px 14px rgba(0,0,0,.35);opacity:0;pointer-events:none;z-index:3}
+#pop.go{animation:pop .6s ease-out}
+#spd{position:absolute;bottom:40px;left:0;right:0;text-align:center;font-size:26px;font-weight:900;color:#00b8ff;text-shadow:0 3px 14px rgba(0,0,0,.3);opacity:0;pointer-events:none}
+#spd.go{animation:pop .75s ease-out}
+@keyframes pop{0%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:translateY(-60px) scale(1)}}
+/* テンキー */
+footer{display:flex;flex-direction:column;align-items:center;margin-top:12px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;max-width:420px}
+.key{height:clamp(50px,8.2vh,66px);border:0;border-radius:18px;font-size:30px;font-weight:900;background:var(--card);color:var(--text);cursor:pointer;box-shadow:0 5px 0 rgba(80,30,140,.2);touch-action:manipulation;font-variant-numeric:tabular-nums}
+.key.on{transform:translateY(3px);box-shadow:0 2px 0 rgba(80,30,140,.2)}
+.key.neg{color:var(--pink)}
+.key.fn{color:var(--sub);font-size:24px}
+/* 画面いっぱいの画面 */
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:linear-gradient(160deg,var(--bg1),var(--bg2));padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:10}
+.ov h1{margin:0;font-size:clamp(40px,13vw,60px);line-height:1.05;font-weight:900}
+.ov h1 em{font-style:normal;color:var(--pink)}
+.ov p{margin:0;max-width:340px;color:var(--sub);line-height:1.6}
+.topbtn{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;border:0;border-radius:99px;padding:9px 16px;font-size:15px;font-weight:800;background:var(--card);color:var(--text);cursor:pointer;box-shadow:0 4px 0 rgba(80,30,140,.18);z-index:3}
+.topbtn.l{right:auto;left:16px}
+.cta{border:0;border-radius:99px;padding:16px 40px;font-size:21px;font-weight:900;color:#fff;background:linear-gradient(90deg,var(--pink),#ff7a3c);cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.18)}
+.cta.line{background:#06c755}
+.cta.alt{background:none;color:var(--sub);box-shadow:none;font-size:15px;padding:6px}
+.cta.ghost{background:var(--card);color:var(--pink);box-shadow:0 8px 0 rgba(80,30,140,.18)}
+/* オープニング */
+#open{overflow:hidden}
+.fl{position:absolute;font-weight:900;color:var(--pink);opacity:.13;pointer-events:none;animation:drift linear infinite}
+@keyframes drift{from{transform:translateY(110vh) rotate(0)}to{transform:translateY(-20vh) rotate(200deg)}}
+.logo{position:relative;animation:boing .9s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes boing{from{opacity:0;transform:scale(.3) rotate(-8deg)}to{opacity:1;transform:none}}
+#open h1{font-size:clamp(44px,14vw,84px);white-space:nowrap}
+#open .tag{font-size:18px;font-weight:800;color:var(--text);animation:up .6s .5s both}
+@keyframes up{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.opbtns{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:300px;margin-top:18px;animation:up .6s .8s both}
+.opbtns .cta{width:100%}
+.note{font-size:12px!important}
+/* 登録・ログイン */
+.form{display:flex;flex-direction:column;gap:14px;width:100%;max-width:320px;text-align:left}
+.form label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:14px}
+.form input{font:inherit;font-size:18px;padding:13px 16px;border-radius:16px;border:2px solid transparent;background:var(--card);color:var(--text);-webkit-user-select:text;user-select:text;outline:none}
+.form input:focus{border-color:var(--pink)}
+.form small{font-weight:400;color:var(--sub);font-size:12px}
+.form .cta{margin-top:6px}
+.form .cta:disabled{opacity:.6}
+.err{color:var(--ng)!important;font-weight:800;min-height:1.6em;font-size:14px}
+/* ワールドマップ */
+#map{justify-content:flex-start;gap:10px;padding-top:calc(66px + env(safe-area-inset-top,0px));padding-left:16px;padding-right:16px}
+#map .oya{width:100%;max-width:420px;margin:0;background:var(--card);border-radius:16px;padding:9px 12px}
+.wnav{display:flex;align-items:center;gap:8px;width:100%;max-width:420px}
+.wbtn{flex:none;width:42px;height:42px;border:0;border-radius:50%;background:var(--card);color:var(--text);font-size:16px;cursor:pointer;box-shadow:0 3px 0 rgba(80,30,140,.18)}
+.wbtn:disabled{opacity:.3}
+.wt{flex:1}
+.wt small{display:block;font-size:12px;font-weight:900;letter-spacing:.15em;color:var(--sub)}
+.wt b{font-size:22px}
+.mapbox{position:relative;flex:1;width:100%;max-width:420px;min-height:280px;border-radius:28px;overflow:hidden;box-shadow:0 14px 40px rgba(80,30,140,.25)}
+.mapbox svg{position:absolute;inset:0;width:100%;height:100%}
+.mapbox .deco{position:absolute;font-size:34px;opacity:.35;pointer-events:none}
+.node{position:absolute;transform:translate(-50%,-50%);width:58px;height:58px;border-radius:50%;border:4px solid #fff;background:var(--pink);color:#fff;font-size:15px;font-weight:900;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.22);display:flex;align-items:center;justify-content:center;padding:0}
+.node.mid{width:68px;height:68px;font-size:30px;background:#ff7a3c}
+.node.big{width:84px;height:84px;font-size:40px;background:#7a3cff}
+.node.done{background:var(--ok)}
+.node.lock{background:#9a96b5;cursor:default;font-size:20px}
+.node.now{animation:now 1s ease-in-out infinite alternate}
+@keyframes now{to{box-shadow:0 6px 0 rgba(0,0,0,.22),0 0 0 10px rgba(255,255,255,.55)}}
+.node .st{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-size:13px;color:#ffe14d;text-shadow:0 1px 3px rgba(0,0,0,.6);white-space:nowrap;letter-spacing:-1px}
+.wlock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,10,40,.45);color:#fff;font-weight:900;font-size:16px;padding:20px}
+.wdesc{font-size:13px}
+.sheet{position:fixed;inset:0;background:rgba(20,10,40,.45);display:flex;align-items:flex-end;justify-content:center;z-index:5}
+.sheet .in{width:100%;max-width:520px;background:var(--card);border-radius:28px 28px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;gap:8px;animation:up .2s both}
+.sheet .no{font-size:13px;font-weight:900;letter-spacing:.15em;color:var(--sub)}
+.sheet h2{margin:0;font-size:26px}
+.sheet .bemo{font-size:56px}
+.sheet p{font-size:14px}
+.sheet .cta{width:100%;max-width:320px;margin-top:6px}
+/* 名前メニューとランク */
+#who small{margin-left:6px;font-size:12px;color:#fff;background:var(--pink);border-radius:99px;padding:2px 8px}
+.umenu{position:absolute;top:calc(64px + env(safe-area-inset-top,0px));left:16px;z-index:4;width:min(300px,calc(100% - 32px));background:var(--card);border-radius:22px;padding:16px;box-shadow:0 14px 40px rgba(80,30,140,.3);text-align:left;animation:up .18s both}
+.rank{display:flex;gap:14px;align-items:center}
+.rank .rk{flex:none;width:76px;height:76px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;background:conic-gradient(from 200deg,var(--pink),var(--gold),#7a3cff,var(--pink));box-shadow:inset 0 0 0 5px rgba(255,255,255,.35)}
+.rank .rk span{font-size:10px;font-weight:800;letter-spacing:.1em}
+.rank .rk b{font-size:30px;line-height:1}
+.rank .ti{flex:1;min-width:0}
+.rank .ti b{display:block;font-size:17px}
+.rank .bar{margin:6px 0 4px}
+.rank small{font-size:12px;color:var(--sub)}
+.umenu .how{font-size:11px;color:var(--sub);margin:10px 0 4px;line-height:1.5}
+.umenu .item{display:block;width:100%;border:0;border-top:1px solid rgba(127,127,160,.2);background:none;color:var(--text);font-size:16px;font-weight:800;text-align:left;padding:13px 4px;cursor:pointer}
+.umenu .item.out{color:var(--ng)}
+/* 記録 */
+#rec{justify-content:flex-start;overflow-y:auto;padding-top:calc(64px + env(safe-area-inset-top,0px))}
+#rec h1{font-size:clamp(32px,10vw,44px)}
+.recs{display:flex;flex-direction:column;gap:10px;width:100%;max-width:400px}
+.rec{background:var(--card);border-radius:18px;padding:12px 14px;text-align:left}
+.rec .hd{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px;font-weight:800;margin-bottom:8px}
+.rec .tag{font-size:12px;color:#fff;border-radius:99px;padding:2px 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tag.basic,.tag.w1{background:#10b968}.tag.mid,.tag.w2{background:#ff6a3c}.tag.high,.tag.w3{background:#5a6cff}.tag.w4{background:#0f9f8f}.tag.w5{background:#7a3cff}
+.rec .row{display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.rec .row b{display:block;font-size:clamp(15px,4.6vw,19px);white-space:nowrap;font-variant-numeric:tabular-nums}
+.rec .row span{font-size:11px;color:var(--sub)}
+/* 結果 */
+#res{gap:10px;overflow-y:auto;justify-content:flex-start;padding-top:calc(30px + env(safe-area-inset-top,0px))}
+#rH{font-size:clamp(34px,11vw,52px)}
+#rH.win{background:linear-gradient(90deg,var(--pink),var(--gold));-webkit-background-clip:text;background-clip:text;color:transparent;animation:boing .8s cubic-bezier(.3,1.6,.5,1) both}
+.stars{font-size:42px;letter-spacing:4px;color:var(--gold);text-shadow:0 2px 8px rgba(0,0,0,.2);min-height:1.2em}
+.stars i{font-style:normal;display:inline-block;animation:boing .6s cubic-bezier(.3,1.6,.5,1) both}
+.stars i.off{color:rgba(127,127,160,.35);text-shadow:none}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:360px}
+.stats div{background:var(--card);border-radius:16px;padding:9px 6px}
+.stats b{display:block;font-size:24px}
+.stats span{font-size:12px;color:var(--sub)}
+.meter{width:100%;max-width:360px;text-align:left;font-weight:800;font-size:14px}
+.meter .bar{height:16px;margin-top:6px}
+.meter .bar i{background:linear-gradient(90deg,#00f2ea,#ff0050)}
+#rR{font-weight:900;color:var(--text);font-size:17px}
+#rR.up{color:var(--pink);font-size:21px;animation:boing .7s cubic-bezier(.3,1.6,.5,1) both}
+#res .cta{width:100%;max-width:320px}
+#res .cta.alt{width:auto}
+#share{order:1}#again.cta.alt,#toMap{order:2}  /* リトライを出すときだけ #again がLINEより上に来る */
+.p{position:fixed;pointer-events:none;font-size:22px;z-index:5;animation:fly .7s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+.shake{animation:sh .3s}
+@keyframes sh{20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}
+@media (prefers-reduced-motion:reduce){body.fever,#fev,.fl,.logo,#open .tag,.opbtns,.node.now,.bigshake{animation:none}}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="hud"><button id="quit" aria-label="マップにもどる">✕</button><span id="stg"></span><span id="sc">0</span><span id="cb"></span><button id="mute" aria-label="音のオンオフ">🔊</button></div>
+    <div class="oya" id="oyaP"><span>📱 TikTok解禁</span><div class="bar"><i id="oyaBarP"></i></div><b id="oyaTxtP"></b></div>
+  </header>
+  <div class="prog" id="prog"><div class="bar"><i id="pBar"></i></div><span id="pTxt"></span><span id="heartsP"></span></div>
+  <div class="boss" id="boss" hidden>
+    <div class="bemo" id="bEmo"></div>
+    <div class="binfo"><div class="bname"><b id="bName"></b><span id="hearts"></span></div><div class="bar hp"><i id="bHp"></i></div></div>
+    <div class="dmg" id="dmg"></div>
+  </div>
+  <main id="stage">
+    <div id="fev" hidden>🔥 FEVER TIME 🔥</div>
+    <div id="card" class="card">
+      <div class="tbar" aria-hidden="true"><i id="tBar"></i><b id="tMark"></b></div>
+      <button class="weak" id="weak" aria-label="数字を簡単にする">🧪 弱体化<b id="weakN">3</b></button>
+      <div id="eq"><div id="eqQ"></div><div id="eqR"></div></div>
+      <div class="hint" id="hint">答えを打つだけ。エンター不要！</div>
+    </div>
+    <div id="pop"></div>
+    <div id="spd"></div>
+  </main>
+  <footer>
+    <div class="pad" id="pad">
+      <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+      <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+      <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+      <button class="key neg" data-k="-" aria-label="マイナス">−</button><button class="key" data-k="0">0</button><button class="key fn" data-k="C" aria-label="クリア">C</button>
+    </div>
+  </footer>
+</div>
+<div id="flash"></div>
+
+<section id="open" class="ov">
+  <div id="fls"></div>
+  <div class="logo"><h1>Dopa<em>-</em>Math</h1></div>
+  <p class="tag">解くたび、脳汁ドバァ。</p>
+  <div class="opbtns" id="opLoad"><p>読み込み中…</p></div>
+  <div class="opbtns" id="opGuest" hidden>
+    <button class="cta" id="goReg">新規登録</button>
+    <button class="cta ghost" id="goLogin">ログイン</button>
+  </div>
+  <div class="opbtns" id="opUser" hidden>
+    <button class="cta" id="goPlay">▶ はじめる</button>
+    <p id="opWho"></p>
+    <button class="cta alt" id="goSwitch">別の名前でログイン</button>
+  </div>
+  <p class="note" id="opNote"></p>
+</section>
+
+<section id="auth" class="ov" hidden>
+  <button class="topbtn l" id="authBack">← 戻る</button>
+  <h1 id="authT"></h1>
+  <form class="form" id="authF" novalidate>
+    <label>名前<input id="aName" autocomplete="username" maxlength="20" autocapitalize="off"></label>
+    <label>パスワード <small>6文字以上</small><input id="aPw" type="password"></label>
+    <label id="aPw2L">パスワード（確認）<input id="aPw2" type="password" autocomplete="new-password"></label>
+    <p class="err" id="aErr"></p>
+    <button class="cta" id="aGo"></button>
+  </form>
+  <button class="cta alt" id="authSwap"></button>
+</section>
+
+<section id="map" class="ov" hidden>
+  <button class="topbtn l" id="who" aria-haspopup="menu"><span id="whoN"></span><small id="whoR"></small></button>
+  <div class="umenu" id="umenu" role="menu" hidden>
+    <div class="rank">
+      <div class="rk"><span>RANK</span><b id="mRank"></b></div>
+      <div class="ti"><b id="mTitle"></b><div class="bar"><i id="mBar"></i></div><small id="mNext"></small></div>
+    </div>
+    <p class="how">先のワールドほど、速く正確に解くほどXPがたまってランクが上がります</p>
+    <button class="item" id="mRec" role="menuitem">📒 記録</button>
+    <button class="item out" id="mOut" role="menuitem">ログアウト</button>
+  </div>
+  <div class="oya" id="oyaM"><span>📱 TikTok解禁</span><div class="bar"><i id="oyaBarM"></i></div><b id="oyaTxtM"></b></div>
+  <div class="wnav">
+    <button class="wbtn" id="wPrev" aria-label="前のワールド">◀</button>
+    <div class="wt"><small id="wNo"></small><b id="wName"></b></div>
+    <button class="wbtn" id="wNext" aria-label="次のワールド">▶</button>
+  </div>
+  <div class="mapbox" id="mapbox"></div>
+  <p class="wdesc" id="wDesc"></p>
+  <div class="sheet" id="sheet" hidden>
+    <div class="in">
+      <span class="no" id="shNo"></span>
+      <div class="bemo" id="shEmo"></div>
+      <h2 id="shName"></h2>
+      <p id="shDesc"></p>
+      <p id="shInfo"></p>
+      <button class="cta" id="shGo">スタート！</button>
+      <button class="cta alt" id="shX">とじる</button>
+    </div>
+  </div>
+</section>
+
+<section id="rec" class="ov" hidden>
+  <button class="topbtn l" id="recBack">← 戻る</button>
+  <h1>記録</h1>
+  <div class="recs" id="recs"></div>
+</section>
+
+<section id="res" class="ov" hidden>
+  <h1 id="rH"></h1>
+  <div class="stars" id="rS"></div>
+  <div class="stats">
+    <div><b id="rN">0</b><span>解いた問題</span></div>
+    <div><b id="rA">0%</b><span>正解率</span></div>
+    <div><b id="rC">0</b><span>最大コンボ</span></div>
+    <div><b id="rT">-</b><span>計算時間</span></div>
+  </div>
+  <div class="meter"><span id="rM"></span><div class="bar"><i id="rB"></i></div></div>
+  <p id="rR"></p>
+  <p id="rW"></p>
+  <button class="cta" id="nextSt">次のステージへ ▶</button>
+  <button class="cta line" id="share">LINEで送る</button>
+  <button class="cta alt" id="again">もう一回</button>
+  <button class="cta alt" id="toMap">マップへもどる</button>
+</section>
+
+<script>
+/* ---------- 出題エンジン（式の木を作って、計算・表示・ヒント・弱体化に使う） ---------- */
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+
+// 分数で正確に計算する（小数も分数として持つので誤差が出ない）
+const gcd=(a,b)=>{a=Math.abs(a);b=Math.abs(b);while(b)[a,b]=[b,a%b];return a||1};
+const lcm=(a,b)=>a/gcd(a,b)*b;
+const Q=(n,d=1)=>{if(d<0){n=-n;d=-d}const g=gcd(n,d);return{n:n/g,d:d/g}};
+const QOP={"+":(a,b)=>Q(a.n*b.d+b.n*a.d,a.d*b.d),"−":(a,b)=>Q(a.n*b.d-b.n*a.d,a.d*b.d),"×":(a,b)=>Q(a.n*b.n,a.d*b.d),"÷":(a,b)=>Q(a.n*b.d,a.d*b.n)};
+const qpow=(a,e)=>Q(a.n**e,a.d**e);
+
+// 式の木。n=数 b=二項演算 p=かっこ w=累乗 u=先頭のマイナス（−4² の −）
+const I=(v,plus)=>({t:"n",v:Q(v),f:"i",plus:!!plus&&v>0});
+const S=v=>I(v,true);                       // 正の数にも＋を付ける（(+3) 表記）
+const Ib=v=>({...I(v),bare:true});           // 式や（）の先頭のマイナスはカッコなしで書く（−4 + 7）
+const D=(t,den=10)=>({t:"n",v:Q(t,den),f:"d"});  // 小数。D(12)=1.2
+const F=(n,d)=>{const v=Q(n,d);return v.d===1?I(v.n):{t:"n",v,f:"f"}};
+const FQ=q=>F(q.n,q.d);
+const Fb=(n,d)=>({...F(n,d),bare:true});
+const B=(op,l,r)=>({t:"b",op,l,r});
+const P=e=>({t:"p",e});
+const W=(b,e)=>({t:"w",b,e});
+const U=e=>({t:"u",e});
+const add=(l,r)=>B("+",l,r),sub=(l,r)=>B("−",l,r),mul=(l,r)=>B("×",l,r),div=(l,r)=>B("÷",l,r);
+
+function ev(x){
+  switch(x.t){
+    case "n":return x.v;
+    case "b":{const r=ev(x.r);if(x.op==="÷"&&r.n===0)throw new Error("÷0");return QOP[x.op](ev(x.l),r)}
+    case "p":return ev(x.e);
+    case "w":return qpow(ev(x.b),x.e);
+    case "u":{const v=ev(x.e);return Q(-v.n,v.d)}
+  }
+}
+
+// 見た目どおりに計算されるよう、必要な所にだけかっこを足す。ついでに番号を振る
+const prec=x=>x.t==="b"?(x.op==="+"||x.op==="−"?1:2):9;
+function norm(x,ctr={i:0}){
+  let y;
+  if(x.t==="b"){
+    let l=norm(x.l,ctr),r=norm(x.r,ctr);
+    if(prec(l)<prec(x))l=wrap(l,ctr);
+    if(prec(r)<prec(x)||(prec(r)===prec(x)&&(x.op==="−"||x.op==="÷"))||lead(r).t==="u")r=wrap(r,ctr);
+    y={...x,l,r};
+  }else if(x.t==="p")y={...x,e:norm(x.e,ctr)};
+  else if(x.t==="w"){let b=norm(x.b,ctr);if(b.t==="b"||b.t==="u")b=wrap(b,ctr);y={...x,b}}
+  else if(x.t==="u")y={...x,e:norm(x.e,ctr)};
+  else y={...x};
+  y.id=ctr.i++;return y;
+}
+const lead=x=>x.t==="b"?lead(x.l):x;  // 式のいちばん左にあるもの
+const wrap=(e,ctr)=>({t:"p",e,id:ctr.i++});
+
+// 小数の表示。分母が10・100…で割り切れる形に直して小数点を入れる
+const decStr=q=>{let k=0;while(10**k%q.d&&k<6)k++;const s=String(Math.abs(q.n)*(10**k/q.d)).padStart(k+1,"0");
+  return (q.n<0?"-":"")+(k?s.slice(0,-k)+"."+s.slice(-k):s)};
+
+// 表示用HTML。全部の文字を .tk で包んで、ヒントで光らせたり暗くしたりできるようにする
+function html(x){
+  const tk=(s,c="")=>`<span class="tk${c}">${s}</span>`;
+  const nd=(x,inner)=>`<span class="nd" data-i="${x.id}">${inner}</span>`;
+  switch(x.t){
+    case "n":{
+      const a=Math.abs(x.v.n),body=x.f==="f"?`<span class="tk fr"><span>${a}</span><span>${x.v.d}</span></span>`:tk(x.f==="d"?decStr(Q(a,x.v.d)):a);
+      if(x.v.n<0)return nd(x,x.bare?tk("−"," sg")+body:tk("(")+tk("−"," sg")+body+tk(")"));
+      if(x.plus)return nd(x,tk("(")+tk("+"," sg")+body+tk(")"));
+      return nd(x,body);
+    }
+    case "b":return nd(x,html(x.l)+`<span class="tk op" data-o="${x.id}">${x.op}</span>`+html(x.r));
+    case "p":return nd(x,tk("(")+html(x.e)+tk(")"));
+    case "w":{const b=x.b,fr=b.t==="n"&&b.f==="f"&&b.v.n>0&&!b.plus;
+      return nd(x,(fr?tk("("):"")+html(b)+(fr?tk(")"):"")+`<sup class="tk">${x.e}</sup>`)}
+    case "u":return nd(x,tk("−"," sg")+html(x.e));
+  }
+}
+function text(x){
+  switch(x.t){
+    case "n":{const a=Math.abs(x.v.n),body=x.f==="f"?a+"/"+x.v.d:x.f==="d"?decStr(Q(a,x.v.d)):String(a);
+      return x.v.n<0?(x.bare?"−"+body:"(−"+body+")"):x.plus?"(+"+body+")":body}
+    case "b":return text(x.l)+" "+x.op+" "+text(x.r);
+    case "p":return "("+text(x.e)+")";
+    case "w":{const b=x.b,fr=b.t==="n"&&b.f==="f"&&b.v.n>0&&!b.plus;return (fr?"("+text(b)+")":text(b))+"^"+x.e}
+    case "u":return "−"+text(x.e);
+  }
+}
+
+// ヒント：最初に計算すべき塊（かっこ → 累乗 → 乗除 → 左の加減）と、ぶつかっている符号
+const kids=x=>x.t==="b"?[x.l,x.r]:x.t==="p"||x.t==="u"?[x.e]:x.t==="w"?[x.b]:[];
+const hasOp=x=>x.t==="b"||x.t==="w"||x.t==="u";
+function findPar(x){if(x.t==="p"&&hasOp(x.e))return findPar1(x.e)||x;return findPar1(x)}
+function findPar1(x){for(const c of kids(x)){const r=findPar(c);if(r)return r}return null}
+function findPow(x){if(x.t==="w")return x;for(const c of kids(x)){const r=findPow(c);if(r)return r}return null}
+function findMul(x,inMul){const m=x.t==="b"&&(x.op==="×"||x.op==="÷");if(m&&!inMul)return x;for(const c of kids(x)){const r=findMul(c,m);if(r)return r}return null}
+function findAdd(x){if(x.t!=="b")return null;return findAdd(x.l)||x}
+function chunk(root){
+  const p=findPar(root);
+  if(p)return chunk(p.e)||p;  // かっこの中にも順番があれば、中の最初の塊まで絞る
+  const c=findPow(root)||findMul(root,false)||findAdd(root);
+  return c&&c!==root?c:null;
+}
+function clashes(x,out=[]){
+  if(x.t==="b"&&(x.op==="+"||x.op==="−")&&x.r.t==="n"&&(x.r.v.n<0||x.r.plus))out.push([x.id,x.r.id]);
+  kids(x).forEach(c=>clashes(c,out));return out;
+}
+
+/* ---------- 乱数係：弱体化のとき、形の選び方は同じまま数字だけ小さくする ---------- */
+function Gen(L,replay){
+  const ch=[];let i=0;
+  return{
+    L,ch,weak:!!replay,
+    c(k){const v=replay?(i<replay.length?replay[i++]:0)%k:rnd(0,k-1);if(!replay)ch.push(v);return v},
+    s(){return this.c(2)?-1:1},
+    op(){return this.c(2)?"−":"+"},
+    pick(a){return a[this.c(a.length)]},
+    k(...a){return a[Math.min(L,a.length-1)]},
+    n(lo,hi){if(replay){const l=Math.min(lo,3);return rnd(l,Math.max(l,Math.min(hi,3)))}return rnd(lo,Math.max(lo,hi))}
+  };
+}
+const nzd=(g,lo,hi,d)=>{let t=g.n(lo,hi);while(gcd(t,d)>1)t+=1;return t};  // d と約分できない数（分数がきれいに残るように）
+const opj=(op,l,r)=>B(op,l,r);
+const nb=(g,lo,hi)=>Ib(g.s()*g.n(lo,hi));  // 先頭用：マイナスならカッコなし
+const sgn=(g,lo,hi)=>I(g.s()*g.n(lo,hi));   // 2つ目以降：マイナスならカッコ付き
+// 必ずマイナスが入る掛け算。one=true なら片方だけ、false なら両方マイナスもある
+const negPair=(g,one)=>[[-1,1],[1,-1],[-1,-1]][g.c(one?2:3)];
+function mul99(g,one){const [sa,sb]=negPair(g,one);return mul(I(sa*g.n(2,9)),I(sb*g.n(2,9)))}
+
+const T={
+  // World 1 マイナスの草原：カッコなし
+  a1_negans:{n:"答えがマイナスになる引き算",f:g=>{const a=g.n(1,g.k(5,7,8));return sub(I(a),I(g.n(a+1,9)))}},
+  a1_negstart:{n:"マイナスから始まる計算",f:g=>opj(g.op(),Ib(-g.n(1,9)),I(g.n(1,9)))},
+  a1_rush:{n:"2つの数の加減ラッシュ",f:g=>opj(g.op(),nb(g,1,g.k(9,12,15)),I(g.n(2,g.k(9,13,19))))},
+  a1_three:{n:"3つの数の加減",f:g=>opj(g.op(),opj(g.op(),I(g.n(1,9)),I(g.n(1,9))),I(g.n(1,9)))},
+  a1_threeneg:{n:"マイナスから始まる3つの数の加減",f:g=>opj(g.op(),opj(g.op(),Ib(-g.n(1,9)),I(g.n(1,9))),I(g.n(1,9)))},
+  a1_long:{n:"3〜4つの数の加減",f:g=>{const cnt=3+g.c(2);let e=nb(g,1,9);for(let i=1;i<cnt;i++)e=opj(g.op(),e,I(g.n(1,g.k(9,9,12))));return e}},
+  // World 2 カッコの迷宮
+  a2_same:{n:"同じ符号のカッコ付き足し算",f:g=>{const s=g.s(),h=g.k(9,12,15);return add(I(s*g.n(1,h)),s>0?S(g.n(1,h)):I(-g.n(1,h)))}},
+  a2_diff:{n:"ちがう符号のカッコ付き足し算",f:g=>{const s=g.s(),h=g.k(9,12,15);return add(I(s*g.n(1,h)),s>0?I(-g.n(1,h)):S(g.n(1,h)))}},
+  a2_addsub:{n:"カッコ付きの足し算・引き算",f:g=>{const h=g.k(9,12,15),k=g.c(3),x=sgn(g,1,h),y=g.n(1,h);
+    return k===0?add(x,S(y)):k===1?add(x,I(-y)):sub(x,S(y))}},
+  a2_subneg:{n:"マイナスを引く計算",f:g=>sub(sgn(g,1,g.k(9,12,15)),I(-g.n(1,g.k(9,12,15))))},
+  a2_mul1:{n:"カッコ付きの掛け算（片方がマイナス）",f:g=>{const a=g.n(2,5),b=g.n(2,5);return g.c(2)?mul(I(-a),I(b)):mul(I(b),I(-a))}},
+  a2_mul2:{n:"カッコ付きの掛け算（1〜5の段）",f:g=>{const [sa,sb]=negPair(g,false);return mul(I(sa*g.n(2,5)),I(sb*g.n(2,5)))}},
+  // World 3 反転の火山
+  a3_mul1:{n:"正負の掛け算（片方がマイナス）",f:g=>mul99(g,true)},
+  a3_mul2:{n:"正負の掛け算（九九ぜんぶ）",f:g=>mul99(g,false)},
+  a3_div:{n:"九九の逆で解く割り算",f:g=>{const b=g.s()*g.n(2,9),q=g.s()*g.n(2,9);return div(I(b*q),I(b))}},
+  a3_md0:{n:"掛け算・割り算のミックスと0",f:g=>{switch(g.c(5)){
+    case 0:case 1:return mul99(g,false);
+    case 2:case 3:{const b=g.s()*g.n(2,9),q=g.s()*g.n(1,9);return div(I(b*q),I(b))}
+    default:switch(g.c(3)){case 0:return div(I(0),sgn(g,2,9));case 1:return mul(I(0),sgn(g,2,9));default:return mul(sgn(g,2,9),I(0))}}}},  // 0の計算は5回に1回くらい
+  a3_pow:{n:"2乗の基礎",f:g=>{const a=g.n(2,g.k(5,7,9));switch(g.c(3)){case 0:return W(I(-a),2);case 1:return U(W(I(a),2));default:return W(I(a),2)}}},
+  a3_three:{n:"簡単な3つの掛け算",f:g=>{const h=g.k(3,4,5);return mul(mul(sgn(g,2,h),sgn(g,2,h)),sgn(g,2,h))}},
+  // World 4 四則の要塞
+  a4_mulfirst:{n:"掛け算が先頭の混合式",f:g=>opj(g.op(),mul(sgn(g,2,g.k(5,7,9)),sgn(g,2,g.k(5,7,9))),sgn(g,1,g.k(9,12,15)))},
+  a4_mulback:{n:"掛け算が後ろの混合式",f:g=>opj(g.op(),sgn(g,1,g.k(9,12,15)),mul(sgn(g,2,g.k(5,7,9)),sgn(g,2,g.k(5,7,9))))},
+  a4_div:{n:"割り算を含む混合式",f:g=>{const b=g.s()*g.n(2,g.k(5,7,9)),q=g.s()*g.n(1,g.k(5,7,9)),d=div(I(b*q),I(b)),x=sgn(g,1,g.k(9,12,15));
+    return g.c(2)?opj(g.op(),d,x):opj(g.op(),x,d)}},
+  a4_par:{n:"カッコの中を先に計算する四則混合",f:g=>{const h=g.k(9,9,12),op=g.op(),a=nb(g,1,h);let b=g.n(1,h);
+    if(a.v.n===(op==="−"?b:-b))b+=1;  // カッコの中が0にならないように
+    const inner=P(opj(op,a,I(b))),m=sgn(g,2,g.k(5,7,9));
+    return g.c(2)?mul(inner,m):mul(m,inner)}},
+  // World 5 魔王の城：分数
+  a5_fadd:{n:"同じ分母の分数の足し算・引き算",f:g=>{const d=g.n(2,g.k(3,5,7)),a=nzd(g,1,d-1,d),R=g.n(1,g.k(2,3,4));
+    // a/d と b/d で答えが整数 → a ± b が d の倍数
+    switch(g.c(3)){
+      case 0:return sub(Fb(-a,d),F(R*d-a,d));             // −1/3 − 5/3 = −2
+      case 1:return add(F(R*d+a,d),F(-a,d));               // 7/2 + (−3/2) = 2
+      default:return sub(F(R*d+a,d),F(a,d))}}},            // 7/3 − 1/3 = 2
+  a5_fmul:{n:"分母がスパッと消える分数の掛け算",f:g=>{const d=g.n(2,g.k(4,5,7)),a=nzd(g,1,g.k(4,5,7),d),f=F(g.s()*a,d),N=I(g.s()*d*g.n(1,g.k(2,3,4)));
+    return g.c(2)?mul(f,N):mul(N,f)}},
+  a5_fdiv:{n:"逆数にして約分する分数の割り算",f:g=>{const d=g.n(2,g.k(4,5,7)),a=nzd(g,2,g.k(4,5,7),d);
+    if(g.c(2))return div(I(g.s()*a*g.n(1,g.k(2,3,4))),F(g.s()*a,d));   // (−4) ÷ 2/3
+    const R=g.s()*g.n(2,g.k(3,4,5)),f2=Q(g.s()*a,d);return div(FQ(QOP["×"](Q(R),f2)),FQ(f2))}},  // (−3/5) ÷ (−3/10)
+  a5_final:{n:"全ワールドのまとめ",f:g=>{const a=g.n(2,g.k(3,4,5)),pw=g.c(2)?W(I(-a),2):U(W(I(a),2)),m=mul(sgn(g,2,g.k(4,6,9)),sgn(g,2,g.k(4,6,9)));
+    return g.c(2)?opj(g.op(),pw,m):opj(g.op(),m,pw)}}                  // (−2)² − (−3) × 2
+};
+
+/* ---------- ワールドとステージ ---------- */
+// st: n=ステージ名 t=出る問題の型 L=難しさの上乗せ alt=型を交互に出す
+const WORLDS=[
+  {name:"マイナスの草原",emo:"🌱",desc:"カッコなしの足し算・引き算。数直線の移動と、3つ以上の数",c1:"#20c070",c2:"#9be15d",
+    boss:[{n:"マイナスガエル",e:"🐸"},{n:"ナンコウザウルス",e:"🦖"}],
+    st:[{n:"答えがマイナスになる引き算",t:["a1_negans"]},{n:"マイナスから始まる計算",t:["a1_negstart"]},{n:"2つの数の加減ミックス",t:["a1_negans","a1_negstart"],L:1},
+        {n:"2つの数の加減ラッシュ",t:["a1_rush"]},
+        {n:"3つの数の加減",t:["a1_three"]},{n:"マイナスから始まる3つの数",t:["a1_threeneg","a1_three"],L:1},
+        {n:"3〜4つの数の加減ラッシュ",t:["a1_long"]}]},
+  {name:"カッコの迷宮",emo:"🌀",desc:"+(+) や −(−) の符号変換と、カッコ付きの掛け算の入門",c1:"#7c3aed",c2:"#c4b5fd",
+    boss:[{n:"カッコバット",e:"🦇"},{n:"メイキュウゴーレム",e:"🗿"}],
+    st:[{n:"同じ符号のカッコ付き足し算",t:["a2_same"]},{n:"ちがう符号のカッコ付き足し算",t:["a2_diff"]},{n:"カッコ付きの足し算・引き算",t:["a2_addsub","a2_same","a2_diff"],L:1},
+        {n:"マイナスを引く計算",t:["a2_subneg"]},
+        {n:"カッコ付きの掛け算入門",t:["a2_mul1"]},{n:"カッコ付きの掛け算（1〜5の段）",t:["a2_mul2"],L:1},
+        {n:"カッコの加減と掛け算のミックス",t:["a2_subneg","a2_mul2"],alt:true}]},
+  {name:"反転の火山",emo:"🌋",desc:"九九フル活用の正負の掛け算・割り算と、2乗・3つの数の符号",c1:"#ff5a36",c2:"#ffb300",
+    boss:[{n:"ハンテンサソリ",e:"🦂"},{n:"ルイジョウドラゴン",e:"🐉"}],
+    st:[{n:"正負の掛け算（片方がマイナス）",t:["a3_mul1"]},{n:"正負の掛け算（九九ぜんぶ）",t:["a3_mul2"]},{n:"正負の掛け算ラッシュ",t:["a3_mul1","a3_mul2"],L:1},
+        {n:"九九の逆で解く割り算",t:["a3_div"]},
+        {n:"掛け算・割り算のミックスと0",t:["a3_md0"]},{n:"乗除ミックス ハード",t:["a3_md0"],L:1},
+        {n:"2乗と3つの掛け算",t:["a3_pow","a3_three"]}]},
+  {name:"四則の要塞",emo:"🏰",desc:"掛け算・割り算を先に計算するルールと、カッコの中から",c1:"#5a6cff",c2:"#00c2ff",
+    boss:[{n:"ジュンバンゴーレム",e:"🤖"},{n:"シソク将軍",e:"👺"}],
+    st:[{n:"掛け算が先頭の混合式",t:["a4_mulfirst"]},{n:"掛け算が先頭の混合式 その2",t:["a4_mulfirst"]},{n:"掛け算が先頭の混合式 ハード",t:["a4_mulfirst"],L:1},
+        {n:"掛け算が後ろの混合式（順序の罠）",t:["a4_mulback"]},
+        {n:"割り算を含む混合式",t:["a4_div"]},{n:"割り算を含む混合式 ハード",t:["a4_div","a4_mulback"],L:1},
+        {n:"カッコの中を先に計算",t:["a4_par"]}]},
+  {name:"魔王の城",emo:"🏯",desc:"分数で約分の快感を味わって、最後は全ワールドの総まとめ",c1:"#7a3cff",c2:"#ff2d8f",
+    boss:[{n:"ブンスウ騎士",e:"💀"},{n:"魔王ケイサン",e:"😈"}],
+    st:[{n:"同じ分母の足し算・引き算",t:["a5_fadd"]},{n:"同じ分母の足し算・引き算 その2",t:["a5_fadd"]},{n:"同じ分母の足し算・引き算 ハード",t:["a5_fadd"],L:1},
+        {n:"分母がスパッと消える掛け算",t:["a5_fmul"]},
+        {n:"逆数にして約分する割り算",t:["a5_fdiv"]},{n:"分数の掛け算・割り算ミックス",t:["a5_fdiv","a5_fmul"],L:1},
+        {n:"全ワールドの総まとめ",t:["a5_final","a5_final","a1_long","a2_subneg","a3_div","a4_mulback","a4_par","a5_fmul","a5_fdiv"]}]}
+];
+const stageName=(w,s)=>s===3?WORLDS[w].boss[0].n:s===6?WORLDS[w].boss[1].n:WORLDS[w].st[s].n;
+const stageTopic=(w,s)=>WORLDS[w].st[s].n;
+
+// 1問つくる。答えが整数でなかったり、出たことのある式なら作り直す
+function build(tpl,L,replay){
+  const g=Gen(L,replay),raw=T[tpl].f(g),v=ev(raw);
+  if(v.d!==1||Math.abs(v.n)>9999)return null;
+  const ast=norm(raw);
+  return{tpl,L,ch:g.ch,ast,text:text(ast),ans:v.n,weak:!!replay};
+}
+function makeQ(tpls,L,seen){
+  for(let i=0;i<80;i++){
+    const t=tpls[i<40?rnd(0,tpls.length-1):i%tpls.length];
+    let q=null;try{q=build(t,L)}catch(e){}
+    if(q&&!seen.has(q.text))return q;
+  }
+  return build(tpls[0],L);
+}
+// 数字だけ消した骨組み。符号やかっこの並びが同じかどうかを比べる
+const shape=t=>t.replace(/\d+(\.\d+)?(\/\d+)?/g,"#");
+function weaken(q){
+  let any=null;
+  for(let i=0;i<80;i++){let w=null;try{w=build(q.tpl,q.L,q.ch)}catch(e){}
+    if(!w||w.text===q.text)continue;if(shape(w.text)===shape(q.text))return w;any=any||w}
+  return any;
+}
+
+const $=s=>document.querySelector(s);
+const NORMAL_N=12,BOSS_HP=[100,150],HEARTS=5,WEAK=3,DAILY=50;  // DAILY = 1日に正解したらTikTok解禁になる問題数
+const LIMIT=[6,6,7,8,8];   // ワールドごとの1問の制限時間（秒）
+const QUICK=3;             // この秒数までに答えるとスコアとダメージが1.5倍。過ぎるとヒントが光る
+const BASE_DMG=8;          // ボスへの基本ダメージ。コンボ1つごとに+10%、FEVER中は2倍
+let sw=0,ss=0,kind,stg,qn,seen,q,typed="",t0=0,tSum=0,score,combo,maxCombo,done,okN,misses,fever,busy,running=false,
+    weakLeft,hlOn,tRaf,tplMiss,hp,hpMax,hearts,muted=false,bi=0,bgT;
+
+/* ---------- 音 ---------- */
+let ac;
+function audio(){
+  if(!ac){try{ac=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}
+  if(ac&&ac.state==="suspended")ac.resume();
+}
+function tone(f,d,type,v,when){
+  if(!ac||muted)return;
+  const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+(when||0);
+  o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);
+  o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d);
+}
+function sfxOk(c){
+  const f=660*Math.pow(1.0595,Math.min(c,12));
+  tone(f,.12,"triangle",.22);tone(f*1.5,.18,"sine",.18,.07);tone(f*2,.25,"square",.05,.14);
+  if(c>0&&c%5===0){[1,1.25,1.5,2].forEach((m,i)=>tone(523*m,.3,"sawtooth",.07,i*.08))}
+}
+function sfxNg(){tone(160,.25,"sawtooth",.14);tone(110,.3,"sawtooth",.14,.12)}
+function sfxCrit(){tone(90,.35,"square",.2);tone(1400,.15,"sawtooth",.08,.02);tone(1900,.2,"triangle",.1,.08)}
+function sfxHint(){tone(1320,.08,"sine",.08);tone(1760,.12,"sine",.07,.07)}
+function sfxWin(){[1,1.25,1.5,2,2.5].forEach((m,i)=>tone(523*m,.35,"triangle",.12,i*.1))}
+const SC=[0,2,4,7,9,12,9,7];
+function bgm(){
+  clearTimeout(bgT);if(!running)return;
+  const sh=Math.floor(bi/8)%2?5:0,boss=kind!=="normal";
+  tone((boss?165:220)*Math.pow(2,(SC[bi%8]+sh+(fever>0?12:0))/12),.12,boss?"sawtooth":"triangle",boss?.035:.05);
+  bi++;bgT=setTimeout(bgm,fever>0?120:boss?180:230);
+}
+
+/* ---------- 出題 ---------- */
+const sid=(w,s)=>`${w+1}-${s+1}`;
+function level(){
+  const base=kind==="normal"?(done<4?0:done<8?1:2):Math.floor((1-hp/hpMax)*3)+(kind==="big"?1:0);
+  return Math.min(2,base+(stg.L||0));
+}
+function nextQ(){
+  // alt のステージは型を順番に交互で出す（例：マイナスを引く計算 → 掛け算 → …）
+  q=makeQ(stg.alt?[stg.t[qn%stg.t.length]]:stg.t,level(),seen);seen.add(q.text);qn++;
+  showQ();enter();
+}
+function showQ(){
+  typed="";hlOn=false;
+  const el=$("#eqQ");el.className=q.text.length>26?"xs":q.text.length>15?"s":"";
+  el.innerHTML=html(q.ast);
+  $("#eqR").className="";draw();
+  $("#weak").disabled=weakLeft<=0||q.weak;$("#weakN").textContent=weakLeft;
+  $("#hint").textContent=q.weak?"🧪 弱体化中！ルールは同じ、数字だけ小さくしたよ":"答えを打つだけ。エンター不要！";
+  t0=performance.now();
+}
+const show=t=>t.replace("-","−");
+function draw(){$("#eqR").innerHTML="= "+(typed?show(typed):`<span class="ph">?</span>`)}
+
+/* ---------- 制限時間：3秒でヒント、時間切れでハートが減って次の問題へ ---------- */
+function tick(){
+  if(!running)return;
+  tRaf=requestAnimationFrame(tick);
+  if(busy)return;
+  const lim=LIMIT[sw],dt=(performance.now()-t0)/1000,left=Math.max(0,1-dt/lim),bar=$("#tBar");
+  bar.style.transform=`scaleX(${left})`;
+  bar.className=dt<QUICK?"":left>.25?"mid":"low";
+  if(dt>=QUICK&&!typed)showHint();
+  if(dt>=lim)timeUp();
+}
+
+/* ---------- 救済①：3秒入力がなければ、最初に計算する塊とぶつかる符号を光らせる ---------- */
+function showHint(){
+  if(!running||busy||hlOn)return;
+  hlOn=true;
+  const c=chunk(q.ast),cl=clashes(q.ast),el=$("#eqQ");
+  if(!c&&!cl.length)return;
+  el.classList.add("dim");
+  if(c)el.querySelector(`[data-i="${c.id}"]`).classList.add("hl");
+  cl.forEach(([o,l])=>{el.querySelector(`[data-o="${o}"]`).classList.add("hs");el.querySelector(`[data-i="${l}"] .sg`).classList.add("hs")});
+  sfxHint();
+}
+
+/* ---------- 救済②：弱体化。式の形はそのまま、数字だけ小さく ---------- */
+$("#weak").onclick=()=>{
+  if(!running||busy||weakLeft<=0||q.weak)return;
+  audio();
+  const w=weaken(q);if(!w)return;
+  weakLeft--;q=w;
+  card.classList.remove("weakfx");void card.offsetWidth;card.classList.add("weakfx");
+  tone(500,.15,"sine",.12);tone(300,.25,"sine",.1,.1);
+  pop("🧪 弱体化！");showQ();
+};
+
+/* ---------- 演出 ---------- */
+const card=$("#card");
+function enter(){
+  card.style.transition="none";
+  card.style.transform="translateY(40px) scale(.94)";card.style.opacity="0";
+  void card.offsetWidth;
+  card.style.transition="transform .12s ease-out,opacity .12s";
+  card.style.transform="";card.style.opacity="1";
+  card.classList.remove("hit","miss");
+}
+function burst(){
+  const r=card.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
+  const em=fever>0?["🔥","⭐","✨"]:["✨","⭐","💥"];
+  for(let i=0;i<14;i++){
+    const e=document.createElement("span");e.className="p";
+    e.textContent=em[i%em.length];e.style.left=cx+"px";e.style.top=cy+"px";
+    const a=Math.random()*6.28,d=80+Math.random()*120;
+    e.style.setProperty("--dx",Math.cos(a)*d+"px");e.style.setProperty("--dy",Math.sin(a)*d+"px");
+    document.body.appendChild(e);setTimeout(()=>e.remove(),750);
+  }
+}
+const WORDS=["ポコン！","ナイス！","俺つえええ！","天才かよ","脳汁ドバァ","キル！","えぐい！"];
+function pop(t,id){const p=$(id||"#pop");p.textContent=t;p.classList.remove("go");void p.offsetWidth;p.classList.add("go")}
+function fx(el,c){el.classList.remove(c);void el.offsetWidth;el.classList.add(c)}
+function hud(){
+  $("#sc").textContent=score;
+  $("#cb").textContent=combo>1?combo+" COMBO":"";
+  document.body.classList.toggle("fever",fever>0);
+  $("#fev").hidden=!(fever>0);
+  const h="❤️".repeat(hearts)+"🤍".repeat(HEARTS-hearts);
+  if(kind==="normal"){$("#pBar").style.width=done/NORMAL_N*100+"%";$("#pTxt").textContent=`${done} / ${NORMAL_N}`;$("#heartsP").textContent=h}
+  else{$("#bHp").style.width=Math.max(0,hp/hpMax*100)+"%";$("#hearts").textContent=h}
+  drawOya("P");
+}
+
+/* ---------- 親黙らせ（TikTok解禁）ゲージ：今日の正解数 ---------- */
+const today=()=>new Date().toDateString();
+function todayOk(){return myRecs.reduce((t,r)=>new Date(r.at).toDateString()===today()?t+r.ok:t,0)+(running?okN:0)}
+function drawOya(k){
+  const t=todayOk(),full=t>=DAILY;
+  $("#oyaBar"+k).style.width=Math.min(100,t/DAILY*100)+"%";
+  $("#oyaTxt"+k).textContent=full?"解禁！親にドヤれ😎":`あと${DAILY-t}問`;
+  $("#oya"+k).classList.toggle("full",full);
+}
+
+/* ---------- 回答（テンキー・エンター不要の即判定） ---------- */
+function press(k){
+  if(busy||!running)return;
+  audio();
+  if(k==="C"){typed="";draw();return}
+  if(k==="-"){if(typed)return;typed="-"}else typed+=k;
+  const want=String(q.ans);
+  if(!want.startsWith(typed)){miss();return}  // 1文字でもズレたら即ミス
+  tone(900,.04,"sine",.07);
+  if(typed===want)correct();else draw();
+}
+function correct(){
+  busy=true;draw();card.classList.add("hit");
+  const dt=(performance.now()-t0)/1000,quick=dt<=QUICK,sp=quick?1.5:1;
+  okN++;done++;combo++;maxCombo=Math.max(maxCombo,combo);tSum+=dt;
+  // FEVER中に正解した分がクリティカル（2倍）
+  const crit=fever>0;
+  score+=Math.round((crit?20:10)*sp);
+  if(quick)pop(`⚡ ${dt.toFixed(1)}秒！ ×1.5`,"#spd");
+  if(kind!=="normal"){
+    const dmg=Math.round(BASE_DMG*(1+.1*(combo-1))*(crit?2:1)*sp);
+    hp-=dmg;fx($("#bEmo"),"hit");
+    const d=$("#dmg");d.textContent=(crit?"CRITICAL!! ":"")+"−"+dmg;d.classList.toggle("crit",crit);fx(d,"go");
+    if(crit){fx($("#app"),"bigshake");sfxCrit();if(navigator.vibrate)navigator.vibrate([20,20,40])}
+  }
+  if(combo%5===0){fever=5;pop("FEVER!!")}else{if(fever>0)fever--;if(!crit||kind==="normal")pop(WORDS[rnd(0,WORDS.length-1)])}
+  if(kind!=="normal"&&hp<=0){hud();sfxOk(combo);burst();$("#bEmo").classList.add("dead");pop("撃破！！");setTimeout(()=>finish("clear"),900);return}
+  sfxOk(combo);burst();
+  if(navigator.vibrate)navigator.vibrate(12);
+  hud();
+  setTimeout(()=>{if(!running)return;if(kind==="normal"&&done>=NORMAL_N){finish("clear");return}nextQ();busy=false},100);
+}
+// まちがい・時間切れの共通処理。ハートが1つ減ってコンボが切れる。ボス戦で0になったら負け
+function hurt(){
+  misses++;tplMiss[q.tpl]=(tplMiss[q.tpl]||0)+1;
+  combo=0;fever=0;hearts=Math.max(0,hearts-1);sfxNg();
+  card.classList.remove("hit");card.classList.add("miss");
+  fx($("#stage"),"shake");if(navigator.vibrate)navigator.vibrate([30,30,30]);
+  if(kind!=="normal"){fx($("#bEmo"),"atk");fx($("#flash"),"go")}
+  hud();
+  if(kind!=="normal"&&hearts<=0){setTimeout(()=>finish("lose"),700);return true}
+  return false;
+}
+function miss(){
+  busy=true;
+  if(hurt())return;
+  typed="";
+  // 答えは見せない。時間内なら同じ問題にもう一度チャレンジ
+  setTimeout(()=>{if(!running)return;draw();card.classList.remove("miss");busy=false},350);
+}
+function timeUp(){
+  busy=true;
+  if(hurt())return;
+  pop("⏰ 時間切れ！");
+  $("#eqR").className="rev";$("#eqR").textContent="答えは "+show(String(q.ans));done++;
+  setTimeout(()=>{if(!running)return;if(kind==="normal"&&done>=NORMAL_N){finish("clear");return}nextQ();busy=false},1100);
+}
+
+/* ---------- テンキー ---------- */
+$("#pad").addEventListener("pointerdown",e=>{
+  const b=e.target.closest(".key");if(!b)return;
+  e.preventDefault();
+  b.classList.add("on");setTimeout(()=>b.classList.remove("on"),90);
+  press(b.dataset.k);
+});
+document.addEventListener("keydown",e=>{
+  if(!running)return;
+  if(/^[0-9]$/.test(e.key))press(e.key);
+  else if(e.key==="-")press("-");
+  else if(["Backspace","Delete","Escape","c","C"].includes(e.key))press("C");
+});
+
+/* ---------- ステージ開始と結果 ---------- */
+function startStage(w,s){
+  sw=w;ss=s;kind=s===3?"mid":s===6?"big":"normal";stg=WORLDS[w].st[s];qn=0;
+  audio();
+  seen=new Set();tplMiss={};
+  score=0;tSum=0;combo=0;maxCombo=0;done=0;okN=0;misses=0;fever=0;busy=false;running=true;bi=0;weakLeft=WEAK;hearts=HEARTS;
+  $("#stg").textContent=sid(w,s);
+  $("#prog").hidden=kind!=="normal";$("#boss").hidden=kind==="normal";
+  if(kind!=="normal"){
+    const b=WORLDS[w].boss[kind==="mid"?0:1];
+    hpMax=hp=BOSS_HP[kind==="mid"?0:1];
+    $("#bEmo").textContent=b.e;$("#bName").textContent=b.n;$("#bEmo").className="bemo";
+  }
+  $("#tMark").style.left=QUICK/LIMIT[w]*100+"%";
+  screen("");hud();nextQ();bgm();cancelAnimationFrame(tRaf);tick();
+  if(kind!=="normal")pop("BOSS BATTLE!");
+}
+// 星は残りハートで決まる（❤️5〜4で★3、3〜2で★2、1〜0で★1）
+function starsOf(clear){return clear?hearts>=4?3:hearts>=2?2:1:0}
+const nextOf=(w,s)=>s<6?[w,s+1]:w<WORLDS.length-1?[w+1,0]:null;
+let last;
+function finish(how){
+  running=false;busy=false;clearTimeout(bgT);cancelAnimationFrame(tRaf);document.body.classList.remove("fever");
+  if(how==="quit"&&done===0&&okN===0){goMap();return}
+  const clear=how==="clear",stars=starsOf(clear),id=sid(sw,ss);
+  if(clear)score+={normal:30,mid:60,big:100}[kind];
+  const r={at:Date.now(),st:id,n:done,ok:okN,miss:misses,sec:Math.round(tSum*10)/10,combo:maxCombo,score,clear,stars};
+  saveRec(r);
+  if(clear&&stars>(myProg[id]||0)){myProg[id]=stars;cloud.saveProg(id,stars).catch(e=>console.error(e))}
+  last={clear,id,w:sw,s:ss};
+  $("#rH").textContent=clear?(kind==="normal"?"STAGE CLEAR!":"BOSS撃破！"):how==="lose"?"GAME OVER":"おつかれ！";
+  $("#rH").className=clear?"win":"";
+  $("#rS").innerHTML=clear?[1,2,3].map(i=>`<i class="${i>stars?"off":""}" style="animation-delay:${i*.15}s">★</i>`).join(""):"";
+  $("#rN").textContent=done;
+  $("#rA").textContent=(okN+misses?Math.round(okN/(okN+misses)*100):0)+"%";
+  $("#rC").textContent=maxCombo;$("#rT").textContent=dur(tSum);
+  const t=todayOk(),p=Math.min(100,Math.round(t/DAILY*100));
+  $("#rM").textContent=t>=DAILY?`📱 TikTok解禁ゲージ 100%！親にドヤ顔していいよ😎`:`📱 TikTok解禁ゲージ ${p}%（あと${DAILY-t}問）`;$("#rB").style.width=p+"%";
+  const w=Object.keys(tplMiss).sort((a,b)=>tplMiss[b]-tplMiss[a])[0];
+  const gate=clear&&kind==="normal"&&stars<2;
+  $("#rW").textContent=how==="lose"?"🧪 弱体化を使えば、数字が小さくなってボスに挑みやすくなるよ":gate?"❤️を3つ以上残して★2を取ると、次のステージが開くよ！":w?`次に伸ばせるのは「${T[w].n}」（ミス${tplMiss[w]}回）。手が止まると最初に計算する所が光るよ`:"ノーミス！天才かよ";
+  const nx=nextOf(sw,ss);$("#nextSt").hidden=!(nx&&unlocked(...nx));
+  // 負けたときや★1のときは「リトライ」を大きく出す
+  const retry=how==="lose"||gate;
+  $("#again").className=retry?"cta":"cta alt";$("#again").textContent=retry?"🔁 リトライ":"もう一回";
+  if(clear)sfxWin();
+  screen("res");
+}
+function shareText(){
+  const t=todayOk(),{id,clear,w,s}=last;
+  return `今日Dopa-Mathで${t}問正解した！ステージ${id}「${stageName(w,s)}」${clear?"クリア":"に挑戦"}、最大${maxCombo}コンボ！ほら私こんだけ勉強したから！${t>=DAILY?"今日のノルマ達成したからTikTokやっていいよね？":""}`;
+}
+$("#share").onclick=async()=>{
+  const t=shareText();
+  if(navigator.share){try{await navigator.share({text:t});return}catch(e){}}
+  window.open("https://line.me/R/msg/text/?"+encodeURIComponent(t),"_blank");
+};
+$("#again").onclick=()=>startStage(last.w,last.s);
+$("#nextSt").onclick=()=>{const nx=nextOf(last.w,last.s);if(nx){mapW=nx[0];startStage(nx[0],nx[1])}};
+$("#toMap").onclick=()=>goMap();
+$("#quit").onclick=()=>{if(!running)return;if(confirm("マップにもどる？（ここまでの記録は残るよ）"))finish("quit")};
+$("#mute").onclick=()=>{muted=!muted;$("#mute").textContent=muted?"🔇":"🔊"};
+
+/* ---------- ワールドマップ ---------- */
+const PTS=[[22,86],[52,79],[80,66],[52,53],[20,40],[48,26],[76,13]];
+const DECO=["🌼🌿🍀🌷","🌀🧱🗝️🕯️","🔥🪨💥🌋","🧱⚔️🛡️🚩","🦇🕯️⛓️🌙"];
+let mapW=0;
+const cleared=id=>(myProg[id]||0)>0;
+// 通常ステージは★2以上で次が開く。ボスは倒せば次が開く
+function unlocked(w,s){if(w===0&&s===0)return true;const ps=s>0?s-1:6,p=s>0?sid(w,s-1):sid(w-1,6);return (myProg[p]||0)>=(ps===3||ps===6?1:2)}
+function goMap(){
+  drawRank();$("#umenu").hidden=true;$("#sheet").hidden=true;
+  screen("map");drawOya("M");drawMap();
+}
+function drawMap(){
+  const W=WORLDS[mapW];
+  $("#wNo").textContent=`WORLD ${mapW+1}`;$("#wName").textContent=`${W.emo} ${W.name}`;$("#wDesc").textContent=W.desc;
+  $("#wPrev").disabled=mapW===0;$("#wNext").disabled=mapW===WORLDS.length-1;
+  const nowS=[0,1,2,3,4,5,6].find(s=>unlocked(mapW,s)&&!cleared(sid(mapW,s)));
+  let h=`<svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline points="${PTS.map(p=>p.join(",")).join(" ")}" fill="none" stroke="rgba(255,255,255,.7)" stroke-width="1.6" stroke-dasharray="3 2.4" stroke-linecap="round" vector-effect="non-scaling-stroke" style="stroke-width:6px"/></svg>`;
+  [...DECO[mapW]].forEach((e,i)=>{h+=`<span class="deco" style="left:${[6,82,10,84][i]}%;top:${[8,30,62,84][i]}%">${e}</span>`});
+  PTS.forEach(([x,y],s)=>{
+    const id=sid(mapW,s),un=unlocked(mapW,s),st=myProg[id]||0,boss=s===3?"mid":s===6?"big":"";
+    const label=!un?"🔒":boss?W.boss[s===3?0:1].e:id;
+    h+=`<button class="node ${boss} ${un?st?"done":"":"lock"} ${s===nowS?"now":""}" style="left:${x}%;top:${y}%" data-s="${s}" aria-label="ステージ${id}${un?"":"（まだ遊べません）"}">${label}${st?`<span class="st">${"★".repeat(st)}${"☆".repeat(3-st)}</span>`:""}</button>`;
+  });
+  if(!unlocked(mapW,0))h+=`<div class="wlock">🔒 WORLD ${mapW}のボスをたおすと解放</div>`;
+  const box=$("#mapbox");box.innerHTML=h;box.style.background=`linear-gradient(170deg,${W.c2},${W.c1})`;
+}
+$("#wPrev").onclick=()=>{if(mapW>0){mapW--;drawMap()}};
+$("#wNext").onclick=()=>{if(mapW<WORLDS.length-1){mapW++;drawMap()}};
+let pick=null;
+$("#mapbox").onclick=e=>{
+  const b=e.target.closest(".node");if(!b)return;
+  const s=+b.dataset.s;if(!unlocked(mapW,s))return;
+  audio();pick=[mapW,s];
+  const id=sid(mapW,s),st=myProg[id]||0,boss=s===3||s===6,W=WORLDS[mapW];
+  $("#shNo").textContent=`STAGE ${id}`+(boss?(s===3?"　中ボス":"　大ボス"):"");
+  $("#shEmo").textContent=boss?W.boss[s===3?0:1].e:"";$("#shEmo").hidden=!boss;
+  $("#shName").textContent=stageName(mapW,s);
+  const ex=makeQ(W.st[s].t,0,new Set()).text.replace(/\^2/g,"²").replace(/\^3/g,"³");
+  $("#shDesc").textContent=(boss?`「${stageTopic(mapW,s)}」で勝負！正解するとダメージ、3コンボ以上でクリティカル。まちがえると❤️が減るよ。`:"")+`例：${ex}`;
+  $("#shInfo").textContent=(boss?`ボスHP ${BOSS_HP[s===3?0:1]}`:`${NORMAL_N}問`)+`　❤️×${HEARTS}　⏱${LIMIT[mapW]}秒　🧪×${WEAK}　`+(st?"★".repeat(st)+"☆".repeat(3-st):boss?"まだ倒してないよ":"★2で次が開くよ");
+  $("#sheet").hidden=false;
+};
+$("#shGo").onclick=()=>{$("#sheet").hidden=true;startStage(...pick)};
+$("#shX").onclick=()=>$("#sheet").hidden=true;
+$("#sheet").onclick=e=>{if(e.target.id==="sheet")$("#sheet").hidden=true};
+
+/* ---------- アカウントと記録 ---------- */
+let me=null,myRecs=[],myProg={},loadP=null;
+// 新しい人に切り替わったら記録を読み込む。同じ人なら読み込み中の約束を返す
+function setUser(u){
+  if(u&&me&&u.id===me.id){if(u.name)me.name=u.name;return loadP}
+  me=u;myRecs=[];myXp=0;myProg={};
+  loadP=u?Promise.all([cloud.listRecords(),cloud.getProfile()]).then(([l,p])=>{
+    if(me!==u)return;
+    myRecs=l;myProg=p.prog||{};
+    // XPを持っていない人は、今までの記録から計算して保存しておく
+    let x=p.xp;if(x==null){x=l.reduce((t,r)=>t+xpOf(r),0);cloud.setXp(x).catch(e=>console.error(e))}
+    myXp=x;
+    // 遊べる中でいちばん先のワールドをマップに出す
+    mapW=0;while(mapW<WORLDS.length-1&&unlocked(mapW+1,0))mapW++;
+  }).catch(e=>console.error(e)):Promise.resolve();
+  return loadP.then(opening);
+}
+window.onAuth=setUser;
+function screen(id){document.querySelectorAll(".ov").forEach(o=>o.hidden=o.id!==id)}
+function opening(){
+  $("#opLoad").hidden=true;$("#opGuest").hidden=!!me;$("#opUser").hidden=!me;
+  if(me)$("#opWho").textContent=`${me.name} としてログイン中`;
+  $("#opNote").textContent=cloud.mode==="local"?"※ Firebaseが未設定なので、いまはこの端末の中だけに保存しています":"";
+}
+/* ---------- ランク（1〜100） ----------
+   XP = スコア × ワールドの重さ × 正解率。スコアには速さボーナス・フィーバー・クリアボーナスが入っている */
+const TIERS=["はじめの一歩","計算見習い","暗算ルーキー","計算ファイター","スピードスター","計算マスター","暗算エリート","計算の達人","伝説の計算士","計算の神"];
+const need=r=>Math.round(30*Math.pow(r-1,1.9));  // ランクrになるのに必要な合計XP。100で約18.6万
+const rankOf=x=>{let r=1;while(r<100&&x>=need(r+1))r++;return r};
+const COURSE_W={basic:1,mid:1.5,high:2};  // ワールド制より前の記録用
+function xpOf(r){
+  const w=r.st?1+(+r.st.split("-")[0]-1)*.25:COURSE_W[r.c]||1,m=r.miss??(r.n-r.ok);
+  return Math.round(r.score*w*(r.ok+m?r.ok/(r.ok+m):0));
+}
+let myXp=0;
+function drawRank(){
+  const r=rankOf(myXp);
+  $("#whoN").textContent="👤 "+me.name;$("#whoR").textContent="ランク"+r;
+  $("#mRank").textContent=r;$("#mTitle").textContent=TIERS[Math.floor((r-1)/10)];
+  const a=need(r),b=need(r+1);
+  $("#mBar").style.width=(r>=100?100:(myXp-a)/(b-a)*100)+"%";
+  $("#mNext").textContent=r>=100?`最高ランク！ 合計 ${myXp.toLocaleString()} XP`:`次のランクまで ${(b-myXp).toLocaleString()} XP`;
+}
+let authMode;
+function openAuth(m){
+  authMode=m;const reg=m==="reg";
+  $("#authT").textContent=reg?"新規登録":"ログイン";
+  $("#aGo").textContent=reg?"登録してはじめる":"ログインしてはじめる";
+  $("#authSwap").textContent=reg?"もう登録してる人はこちら（ログイン）":"はじめての人はこちら（新規登録）";
+  $("#aPw2L").hidden=!reg;
+  $("#aPw").autocomplete=reg?"new-password":"current-password";
+  $("#aErr").textContent="";$("#aPw").value="";$("#aPw2").value="";
+  screen("auth");$("#aName").focus();
+}
+const ERR={
+  "auth/email-already-in-use":"その名前はもう使われています。別の名前にしてね",
+  "auth/invalid-credential":"名前かパスワードがちがいます",
+  "auth/wrong-password":"名前かパスワードがちがいます",
+  "auth/user-not-found":"名前かパスワードがちがいます",
+  "auth/invalid-email":"名前かパスワードがちがいます",
+  "auth/too-many-requests":"失敗が続いたので少し待ってからためしてね",
+  "auth/network-request-failed":"ネットにつながっていません"
+};
+$("#authF").onsubmit=async e=>{
+  e.preventDefault();
+  const name=$("#aName").value.trim(),pw=$("#aPw").value,reg=authMode==="reg";
+  const bad=!name?"名前を入れてね":pw.length<6?"パスワードは6文字以上にしてね":reg&&pw!==$("#aPw2").value?"確認用のパスワードが一致しません":"";
+  if(bad){$("#aErr").textContent=bad;return}
+  $("#aErr").textContent="";$("#aGo").disabled=true;
+  try{
+    const u=await(reg?cloud.register(name,pw):cloud.login(name,pw));
+    await setUser(u);goMap();
+  }catch(err){console.error(err);$("#aErr").textContent=ERR[err.code]||"うまくいきませんでした。もう一度ためしてね"}
+  finally{$("#aGo").disabled=false}
+};
+$("#goReg").onclick=()=>openAuth("reg");
+$("#goLogin").onclick=()=>openAuth("login");
+$("#goSwitch").onclick=()=>openAuth("login");
+$("#authSwap").onclick=()=>openAuth(authMode==="reg"?"login":"reg");
+$("#authBack").onclick=()=>screen("open");
+$("#goPlay").onclick=()=>{audio();goMap()};
+$("#who").onclick=e=>{e.stopPropagation();$("#umenu").hidden=!$("#umenu").hidden};
+$("#umenu").onclick=e=>e.stopPropagation();
+document.addEventListener("click",()=>$("#umenu").hidden=true);
+$("#mRec").onclick=()=>{$("#umenu").hidden=true;showRecs()};
+$("#mOut").onclick=async()=>{
+  if(!confirm(`${me.name} からログアウトしますか？`))return;
+  await cloud.logout();await setUser(null);screen("open");
+};
+function saveRec(r){
+  myRecs.unshift(r);
+  const oops=e=>{console.error(e);$("#rW").textContent+="（記録の保存に失敗しました）"};
+  cloud.addRecord(r).catch(oops);
+  const g=xpOf(r),r0=rankOf(myXp);
+  myXp+=g;cloud.addXp(g).catch(oops);
+  const r1=rankOf(myXp);
+  $("#rR").textContent=r1>r0?`🎉 RANK UP！ ランク${r0} → ${r1}（+${g} XP）`:`+${g} XP　ランク${r1}`;
+  $("#rR").classList.toggle("up",r1>r0);
+}
+// オープニングで数字と記号をふわふわ流す
+(()=>{const ch="0123456789+−×÷=";let h="";for(let i=0;i<18;i++)h+=`<span class="fl" style="left:${rnd(0,92)}%;font-size:${rnd(28,70)}px;animation-duration:${rnd(9,20)}s;animation-delay:-${rnd(0,20)}s">${ch[rnd(0,ch.length-1)]}</span>`;$("#fls").innerHTML=h})();
+const z=x=>String(x).padStart(2,"0");
+function when(t){const d=new Date(t);return `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}（${"日月火水木金土"[d.getDay()]}） ${z(d.getHours())}:${z(d.getMinutes())}`}
+const dur=s=>s<60?s.toFixed(1)+"秒":`${Math.floor(s/60)}分${z(Math.floor(s%60))}秒`;
+const OLD={basic:"初級",mid:"中級",high:"上級"};
+function recTag(r){
+  if(!r.st)return `<span class="tag ${r.c}">${OLD[r.c]||""}</span>`;
+  const [w,s]=r.st.split("-").map(Number);
+  return `<span class="tag w${w}">${r.st} ${stageName(w-1,s-1)}${r.clear?" ✓":""}</span>`;
+}
+function showRecs(){
+  const l=myRecs;
+  $("#recs").innerHTML=l.length?l.map(r=>`<div class="rec"><div class="hd"><span>${when(r.at)}</span>${recTag(r)}</div><div class="row"><div><b>${r.n}</b><span>問題数</span></div><div><b>${dur(r.sec)}</b><span>計算時間</span></div><div><b>${r.combo}</b><span>最大コンボ</span></div><div><b>${r.score}</b><span>スコア</span></div></div></div>`).join(""):`<p>まだ記録がありません。<br>ステージを遊ぶと、ここに残ります。</p>`;
+  screen("rec");$("#rec").scrollTop=0;
+}
+$("#recBack").onclick=goMap;
+</script>
+
+<script type="module">
+/* ---------- 保存先（Firebase。未設定ならこの端末の中） ----------
+   Firebaseコンソールの「プロジェクトの設定 → マイアプリ」にある firebaseConfig をここに貼る */
+const FIREBASE_CONFIG={
+  apiKey:"",
+  authDomain:"",
+  projectId:"",
+  appId:""
+};
+const V="https://www.gstatic.com/firebasejs/10.12.2/";
+// 名前は大文字小文字や全角半角の違いを同じ人として扱う
+const norm=n=>n.normalize("NFKC").toLowerCase();
+async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
+const fail=code=>Object.assign(new Error(code),{code});
+let cloud;
+if(FIREBASE_CONFIG.apiKey){
+  const [{initializeApp},A,F]=await Promise.all(["firebase-app","firebase-auth","firebase-firestore"].map(m=>import(V+m+".js")));
+  const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app);
+  // Firebaseはメールアドレスでしか登録できないので、名前から決まった形のアドレスを作る
+  const mail=async n=>"u"+(await sha(norm(n))).slice(0,40)+"@users.dopa-math.app";
+  const who=u=>u&&{id:u.uid,name:u.displayName||""};
+  const recs=()=>F.collection(db,"users",auth.currentUser.uid,"records");
+  const prof=()=>F.doc(db,"users",auth.currentUser.uid);
+  cloud={
+    mode:"firebase",
+    async register(name,pw){const c=await A.createUserWithEmailAndPassword(auth,await mail(name),pw);await A.updateProfile(c.user,{displayName:name});return who(c.user)},
+    async login(name,pw){return who((await A.signInWithEmailAndPassword(auth,await mail(name),pw)).user)},
+    logout:()=>A.signOut(auth),
+    addRecord:r=>F.addDoc(recs(),r),
+    async listRecords(){return (await F.getDocs(F.query(recs(),F.orderBy("at","desc"),F.limit(300)))).docs.map(d=>d.data())},
+    async getProfile(){const d=await F.getDoc(prof()),x=d.exists()?d.data():{};return {xp:x.xp??null,prog:x.prog||{}}},
+    setXp:x=>F.setDoc(prof(),{xp:x},{merge:true}),
+    addXp:x=>F.setDoc(prof(),{xp:F.increment(x)},{merge:true}),
+    saveProg:(id,stars)=>F.setDoc(prof(),{prog:{[id]:stars}},{merge:true})
+  };
+  window.cloud=cloud;
+  A.onAuthStateChanged(auth,u=>onAuth(who(u)));
+}else{
+  const UK="dopamath-local-users",MK="dopamath-local-me";
+  const load=()=>{try{return JSON.parse(localStorage.getItem(UK))||{}}catch(e){return {}}};
+  const keep=u=>localStorage.setItem(UK,JSON.stringify(u));
+  const who=k=>{const u=load()[k];return u&&{id:k,name:u.name}};
+  const edit=f=>{const u=load(),k=localStorage.getItem(MK);f(u[k]);keep(u)};
+  cloud={
+    mode:"local",
+    async register(name,pw){const u=load(),k=norm(name);if(u[k])throw fail("auth/email-already-in-use");const salt=crypto.randomUUID();u[k]={name,salt,pw:await sha(salt+pw),recs:[]};keep(u);localStorage.setItem(MK,k);return who(k)},
+    async login(name,pw){const k=norm(name),x=load()[k];if(!x||x.pw!==await sha(x.salt+pw))throw fail("auth/invalid-credential");localStorage.setItem(MK,k);return who(k)},
+    async logout(){localStorage.removeItem(MK)},
+    async addRecord(r){edit(x=>{x.recs.unshift(r);x.recs=x.recs.slice(0,300)})},
+    async listRecords(){return [...(load()[localStorage.getItem(MK)]?.recs||[])]},
+    async getProfile(){const x=load()[localStorage.getItem(MK)]||{};return {xp:x.xp??null,prog:x.prog||{}}},
+    async setXp(v){edit(x=>x.xp=v)},
+    async addXp(v){edit(x=>x.xp=(x.xp||0)+v)},
+    async saveProg(id,stars){edit(x=>{x.prog=x.prog||{};x.prog[id]=stars})}
+  };
+  window.cloud=cloud;
+  onAuth(who(localStorage.getItem(MK))||null);
+}
+</script>
+</body>
+</html>

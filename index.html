@@ -42,7 +42,8 @@ body.fever #cb{color:#fff}
 .prog .bar{flex:1;margin:0;height:6px}
 /* ボス */
 .boss{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:20px;padding:6px 12px;margin-top:8px;position:relative}
-.bemo{font-size:44px;line-height:1;transition:filter .2s}
+.bemo{font-size:44px;line-height:1;transition:filter .2s;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-6deg) scale(1.06)}}
 .bemo.hit{animation:bhit .35s}
 .bemo.atk{animation:batk .45s}
 .bemo.dead{animation:bdead .8s forwards}
@@ -460,90 +461,94 @@ const sgn=(g,lo,hi)=>I(g.s()*g.n(lo,hi));   // 2つ目以降：マイナスな�
 // 必ずマイナスが入る掛け算。one=true なら片方だけ、false なら両方マイナスもある
 const negPair=(g,one)=>[[-1,1],[1,-1],[-1,-1]][g.c(one?2:3)];
 function mul99(g,one){const [sa,sb]=negPair(g,one);return mul(I(sa*g.n(2,9)),I(sb*g.n(2,9)))}
+// World 4 用の小さい掛け算（1〜4の段）と割り算
+const mulS=g=>mul(sgn(g,2,4),sgn(g,1,4));
+const divS=g=>{const b=g.s()*g.n(2,4),q=g.s()*g.n(1,4);return div(I(b*q),I(b))};
 
+/* 暗算の重さで手が止まらないよう、World 1〜2 は最後まで1桁、World 3〜5 も小さい数だけ */
 const T={
-  // World 1 マイナスの草原：カッコなし
-  a1_negans:{n:"答えがマイナスになる引き算",f:g=>{const a=g.n(1,g.k(5,7,8));return sub(I(a),I(g.n(a+1,9)))}},
+  // World 1 マイナスの草原：カッコなし・1桁
+  a1_negans:{n:"答えがマイナスになる引き算",f:g=>{const a=g.n(1,8);return sub(I(a),I(g.n(a+1,9)))}},
   a1_negstart:{n:"マイナスから始まる計算",f:g=>opj(g.op(),Ib(-g.n(1,9)),I(g.n(1,9)))},
-  a1_rush:{n:"2つの数の加減ラッシュ",f:g=>opj(g.op(),nb(g,1,g.k(9,12,15)),I(g.n(2,g.k(9,13,19))))},
+  a1_rush:{n:"2つの数の加減ラッシュ",f:g=>opj(g.op(),nb(g,1,9),I(g.n(2,9)))},
   a1_three:{n:"3つの数の加減",f:g=>opj(g.op(),opj(g.op(),I(g.n(1,9)),I(g.n(1,9))),I(g.n(1,9)))},
   a1_threeneg:{n:"マイナスから始まる3つの数の加減",f:g=>opj(g.op(),opj(g.op(),Ib(-g.n(1,9)),I(g.n(1,9))),I(g.n(1,9)))},
-  a1_long:{n:"3〜4つの数の加減",f:g=>{const cnt=3+g.c(2);let e=nb(g,1,9);for(let i=1;i<cnt;i++)e=opj(g.op(),e,I(g.n(1,g.k(9,9,12))));return e}},
-  // World 2 カッコの迷宮
-  a2_same:{n:"同じ符号のカッコ付き足し算",f:g=>{const s=g.s(),h=g.k(9,12,15);return add(I(s*g.n(1,h)),s>0?S(g.n(1,h)):I(-g.n(1,h)))}},
-  a2_diff:{n:"ちがう符号のカッコ付き足し算",f:g=>{const s=g.s(),h=g.k(9,12,15);return add(I(s*g.n(1,h)),s>0?I(-g.n(1,h)):S(g.n(1,h)))}},
-  a2_addsub:{n:"カッコ付きの足し算・引き算",f:g=>{const h=g.k(9,12,15),k=g.c(3),x=sgn(g,1,h),y=g.n(1,h);
+  a1_long:{n:"3つの数の加減ラッシュ",f:g=>opj(g.op(),opj(g.op(),nb(g,1,6),I(g.n(1,6))),I(g.n(1,6)))},
+  // World 2 カッコの迷宮：1桁
+  a2_same:{n:"同じ符号のカッコ付き足し算",f:g=>{const s=g.s();return add(I(s*g.n(1,9)),s>0?S(g.n(1,9)):I(-g.n(1,9)))}},
+  a2_diff:{n:"ちがう符号のカッコ付き足し算",f:g=>{const s=g.s();return add(I(s*g.n(1,9)),s>0?I(-g.n(1,9)):S(g.n(1,9)))}},
+  a2_addsub:{n:"カッコ付きの足し算・引き算",f:g=>{const k=g.c(3),x=sgn(g,1,9),y=g.n(1,9);
     return k===0?add(x,S(y)):k===1?add(x,I(-y)):sub(x,S(y))}},
-  a2_subneg:{n:"マイナスを引く計算",f:g=>sub(sgn(g,1,g.k(9,12,15)),I(-g.n(1,g.k(9,12,15))))},
+  a2_subneg:{n:"マイナスを引く計算",f:g=>sub(sgn(g,1,9),I(-g.n(1,9)))},
   a2_mul1:{n:"カッコ付きの掛け算（片方がマイナス）",f:g=>{const a=g.n(2,5),b=g.n(2,5);return g.c(2)?mul(I(-a),I(b)):mul(I(b),I(-a))}},
   a2_mul2:{n:"カッコ付きの掛け算（1〜5の段）",f:g=>{const [sa,sb]=negPair(g,false);return mul(I(sa*g.n(2,5)),I(sb*g.n(2,5)))}},
   // World 3 反転の火山
   a3_mul1:{n:"正負の掛け算（片方がマイナス）",f:g=>mul99(g,true)},
   a3_mul2:{n:"正負の掛け算（九九ぜんぶ）",f:g=>mul99(g,false)},
-  a3_div:{n:"九九の逆で解く割り算",f:g=>{const b=g.s()*g.n(2,9),q=g.s()*g.n(2,9);return div(I(b*q),I(b))}},
+  a3_div:{n:"九九の逆で解く割り算",f:g=>{const [sd,sb]=negPair(g,false),b=g.n(2,9);return div(I(sd*b*g.n(2,9)),I(sb*b))}},  // 割られる数か割る数に必ずマイナス
   a3_md0:{n:"掛け算・割り算のミックスと0",f:g=>{switch(g.c(5)){
     case 0:case 1:return mul99(g,false);
     case 2:case 3:{const b=g.s()*g.n(2,9),q=g.s()*g.n(1,9);return div(I(b*q),I(b))}
     default:switch(g.c(3)){case 0:return div(I(0),sgn(g,2,9));case 1:return mul(I(0),sgn(g,2,9));default:return mul(sgn(g,2,9),I(0))}}}},  // 0の計算は5回に1回くらい
-  a3_pow:{n:"2乗の基礎",f:g=>{const a=g.n(2,g.k(5,7,9));switch(g.c(3)){case 0:return W(I(-a),2);case 1:return U(W(I(a),2));default:return W(I(a),2)}}},
-  a3_three:{n:"簡単な3つの掛け算",f:g=>{const h=g.k(3,4,5);return mul(mul(sgn(g,2,h),sgn(g,2,h)),sgn(g,2,h))}},
-  // World 4 四則の要塞
-  a4_mulfirst:{n:"掛け算が先頭の混合式",f:g=>opj(g.op(),mul(sgn(g,2,g.k(5,7,9)),sgn(g,2,g.k(5,7,9))),sgn(g,1,g.k(9,12,15)))},
-  a4_mulback:{n:"掛け算が後ろの混合式",f:g=>opj(g.op(),sgn(g,1,g.k(9,12,15)),mul(sgn(g,2,g.k(5,7,9)),sgn(g,2,g.k(5,7,9))))},
-  a4_div:{n:"割り算を含む混合式",f:g=>{const b=g.s()*g.n(2,g.k(5,7,9)),q=g.s()*g.n(1,g.k(5,7,9)),d=div(I(b*q),I(b)),x=sgn(g,1,g.k(9,12,15));
-    return g.c(2)?opj(g.op(),d,x):opj(g.op(),x,d)}},
-  a4_par:{n:"カッコの中を先に計算する四則混合",f:g=>{const h=g.k(9,9,12),op=g.op(),a=nb(g,1,h);let b=g.n(1,h);
+  a3_pow:{n:"2乗の基礎",f:g=>{const a=g.n(2,5);switch(g.c(3)){case 0:return W(I(-a),2);case 1:return U(W(I(a),2));default:return W(I(a),2)}}},
+  a3_three:{n:"簡単な3つの掛け算",f:g=>mul(mul(sgn(g,1,3),sgn(g,2,3)),sgn(g,2,3))},
+  // World 4 四則の要塞：掛け算は1〜4の段、足し引きは1〜5。計算の順番だけに集中
+  a4_mulplus:{n:"掛け算が先頭（足し算つき）",f:g=>add(mulS(g),sgn(g,1,5))},
+  a4_mulminus:{n:"掛け算が先頭（引き算つき）",f:g=>sub(mulS(g),sgn(g,1,5))},
+  a4_mulback:{n:"掛け算が後ろの混合式",f:g=>opj(g.op(),sgn(g,1,5),mulS(g))},
+  a4_div:{n:"割り算が先頭の混合式",f:g=>opj(g.op(),divS(g),sgn(g,1,5))},
+  a4_divback:{n:"割り算が後ろの混合式",f:g=>opj(g.op(),sgn(g,1,5),divS(g))},
+  a4_par:{n:"カッコの中を先に計算する四則混合",f:g=>{const op=g.op(),a=nb(g,1,5);let b=g.n(1,5);
     if(a.v.n===(op==="−"?b:-b))b+=1;  // カッコの中が0にならないように
-    const inner=P(opj(op,a,I(b))),m=sgn(g,2,g.k(5,7,9));
+    const inner=P(opj(op,a,I(b))),m=sgn(g,2,4);
     return g.c(2)?mul(inner,m):mul(m,inner)}},
-  // World 5 魔王の城：分数
-  a5_fadd:{n:"同じ分母の分数の足し算・引き算",f:g=>{const d=g.n(2,g.k(3,5,7)),a=nzd(g,1,d-1,d),R=g.n(1,g.k(2,3,4));
-    // a/d と b/d で答えが整数 → a ± b が d の倍数
-    switch(g.c(3)){
-      case 0:return sub(Fb(-a,d),F(R*d-a,d));             // −1/3 − 5/3 = −2
-      case 1:return add(F(R*d+a,d),F(-a,d));               // 7/2 + (−3/2) = 2
-      default:return sub(F(R*d+a,d),F(a,d))}}},            // 7/3 − 1/3 = 2
-  a5_fmul:{n:"分母がスパッと消える分数の掛け算",f:g=>{const d=g.n(2,g.k(4,5,7)),a=nzd(g,1,g.k(4,5,7),d),f=F(g.s()*a,d),N=I(g.s()*d*g.n(1,g.k(2,3,4)));
+  // World 5 魔王の城：分母は2〜5だけ
+  a5_fplus:{n:"同じ分母の分数の足し算",f:g=>{const d=g.n(2,5),a=nzd(g,1,d-1,d),R=g.n(1,2);
+    return g.c(2)?add(F(R*d+a,d),F(-a,d)):add(Fb(-a,d),F(R*d+a,d))}},          // 7/2 + (−3/2) ／ −1/3 + 4/3
+  a5_fminus:{n:"同じ分母の分数の引き算",f:g=>{const d=g.n(2,5),a=nzd(g,1,d-1,d),R=g.n(1,2);
+    return g.c(2)?sub(Fb(-a,d),F(R*d-a,d)):sub(F(R*d+a,d),F(a,d))}},          // −1/3 − 5/3 ／ 7/3 − 1/3
+  a5_fmul:{n:"分母がスパッと消える分数の掛け算",f:g=>{const d=g.n(2,5),a=nzd(g,1,4,d),f=F(g.s()*a,d),N=I(g.s()*d*g.n(1,2));
     return g.c(2)?mul(f,N):mul(N,f)}},
-  a5_fdiv:{n:"逆数にして約分する分数の割り算",f:g=>{const d=g.n(2,g.k(4,5,7)),a=nzd(g,2,g.k(4,5,7),d);
-    if(g.c(2))return div(I(g.s()*a*g.n(1,g.k(2,3,4))),F(g.s()*a,d));   // (−4) ÷ 2/3
-    const R=g.s()*g.n(2,g.k(3,4,5)),f2=Q(g.s()*a,d);return div(FQ(QOP["×"](Q(R),f2)),FQ(f2))}},  // (−3/5) ÷ (−3/10)
-  a5_final:{n:"全ワールドのまとめ",f:g=>{const a=g.n(2,g.k(3,4,5)),pw=g.c(2)?W(I(-a),2):U(W(I(a),2)),m=mul(sgn(g,2,g.k(4,6,9)),sgn(g,2,g.k(4,6,9)));
+  a5_fdiv:{n:"逆数にして約分する分数の割り算",f:g=>{const d=g.n(2,5),a=nzd(g,2,4,d);
+    if(g.c(2))return div(I(g.s()*a*g.n(1,2)),F(g.s()*a,d));   // (−4) ÷ 2/3
+    const R=g.s()*(a>3?2:g.n(2,3)),f2=Q(g.s()*a,d);  // 分子が12をこえないように
+   return div(FQ(QOP["×"](Q(R),f2)),FQ(f2))}},  // (−4/5) ÷ (−2/5)
+  a5_final:{n:"全ワールドのまとめ",f:g=>{const a=g.n(2,4),pw=g.c(2)?W(I(-a),2):U(W(I(a),2)),m=mulS(g);
     return g.c(2)?opj(g.op(),pw,m):opj(g.op(),m,pw)}}                  // (−2)² − (−3) × 2
 };
 
 /* ---------- ワールドとステージ ---------- */
 // st: n=ステージ名 t=出る問題の型 L=難しさの上乗せ alt=型を交互に出す
 const WORLDS=[
-  {name:"マイナスの草原",emo:"🌱",desc:"カッコなしの足し算・引き算。数直線の移動と、3つ以上の数",c1:"#20c070",c2:"#9be15d",
-    boss:[{n:"マイナスガエル",e:"🐸"},{n:"ナンコウザウルス",e:"🦖"}],
-    st:[{n:"答えがマイナスになる引き算",t:["a1_negans"]},{n:"マイナスから始まる計算",t:["a1_negstart"]},{n:"2つの数の加減ミックス",t:["a1_negans","a1_negstart"],L:1},
+  {name:"マイナスの草原",emo:"🌷",desc:"カッコなしの足し算・引き算。数直線の移動と、3つの数",c1:"#3ccf8e",c2:"#c8f7a6",
+    boss:[{n:"マイナスうさぴょん",e:"🐰"},{n:"ゆめかわユニコーン",e:"🦄"}],
+    st:[{n:"答えがマイナスになる引き算",t:["a1_negans"]},{n:"マイナスから始まる計算",t:["a1_negstart"]},{n:"2つの数の加減ミックス",t:["a1_negans","a1_negstart"]},
         {n:"2つの数の加減ラッシュ",t:["a1_rush"]},
-        {n:"3つの数の加減",t:["a1_three"]},{n:"マイナスから始まる3つの数",t:["a1_threeneg","a1_three"],L:1},
-        {n:"3〜4つの数の加減ラッシュ",t:["a1_long"]}]},
-  {name:"カッコの迷宮",emo:"🌀",desc:"+(+) や −(−) の符号変換と、カッコ付きの掛け算の入門",c1:"#7c3aed",c2:"#c4b5fd",
-    boss:[{n:"カッコバット",e:"🦇"},{n:"メイキュウゴーレム",e:"🗿"}],
-    st:[{n:"同じ符号のカッコ付き足し算",t:["a2_same"]},{n:"ちがう符号のカッコ付き足し算",t:["a2_diff"]},{n:"カッコ付きの足し算・引き算",t:["a2_addsub","a2_same","a2_diff"],L:1},
+        {n:"3つの数の加減",t:["a1_three"]},{n:"マイナスから始まる3つの数",t:["a1_threeneg","a1_three"]},
+        {n:"3つの数の加減ラッシュ",t:["a1_long"]}]},
+  {name:"カッコの迷宮",emo:"🎀",desc:"+(+) や −(−) の符号変換と、カッコ付きの掛け算の入門",c1:"#a46bff",c2:"#f3c4ff",
+    boss:[{n:"カッコつけネコ",e:"😼"},{n:"ゆるふわモアイ",e:"🗿"}],
+    st:[{n:"同じ符号のカッコ付き足し算",t:["a2_same"]},{n:"ちがう符号のカッコ付き足し算",t:["a2_diff"]},{n:"カッコ付きの足し算・引き算",t:["a2_addsub","a2_same","a2_diff"]},
         {n:"マイナスを引く計算",t:["a2_subneg"]},
-        {n:"カッコ付きの掛け算入門",t:["a2_mul1"]},{n:"カッコ付きの掛け算（1〜5の段）",t:["a2_mul2"],L:1},
+        {n:"カッコ付きの掛け算入門",t:["a2_mul1"]},{n:"カッコ付きの掛け算（1〜5の段）",t:["a2_mul2"]},
         {n:"カッコの加減と掛け算のミックス",t:["a2_subneg","a2_mul2"],alt:true}]},
-  {name:"反転の火山",emo:"🌋",desc:"九九フル活用の正負の掛け算・割り算と、2乗・3つの数の符号",c1:"#ff5a36",c2:"#ffb300",
-    boss:[{n:"ハンテンサソリ",e:"🦂"},{n:"ルイジョウドラゴン",e:"🐉"}],
-    st:[{n:"正負の掛け算（片方がマイナス）",t:["a3_mul1"]},{n:"正負の掛け算（九九ぜんぶ）",t:["a3_mul2"]},{n:"正負の掛け算ラッシュ",t:["a3_mul1","a3_mul2"],L:1},
+  {name:"反転の火山",emo:"🌋",desc:"九九フル活用の正負の掛け算・割り算と、2乗・3つの数の符号",c1:"#ff6f61",c2:"#ffd36e",
+    boss:[{n:"はんてんトウガラシ",e:"🌶️"},{n:"ぴえんドラゴン",e:"🐲"}],
+    st:[{n:"正負の掛け算（片方がマイナス）",t:["a3_mul1"]},{n:"正負の掛け算（九九ぜんぶ）",t:["a3_mul2"]},{n:"正負の掛け算ラッシュ",t:["a3_mul1","a3_mul2"]},
         {n:"九九の逆で解く割り算",t:["a3_div"]},
-        {n:"掛け算・割り算のミックスと0",t:["a3_md0"]},{n:"乗除ミックス ハード",t:["a3_md0"],L:1},
+        {n:"掛け算・割り算のミックスと0",t:["a3_md0"]},{n:"割り算多めの乗除ミックス",t:["a3_md0","a3_div"]},
         {n:"2乗と3つの掛け算",t:["a3_pow","a3_three"]}]},
-  {name:"四則の要塞",emo:"🏰",desc:"掛け算・割り算を先に計算するルールと、カッコの中から",c1:"#5a6cff",c2:"#00c2ff",
-    boss:[{n:"ジュンバンゴーレム",e:"🤖"},{n:"シソク将軍",e:"👺"}],
-    st:[{n:"掛け算が先頭の混合式",t:["a4_mulfirst"]},{n:"掛け算が先頭の混合式 その2",t:["a4_mulfirst"]},{n:"掛け算が先頭の混合式 ハード",t:["a4_mulfirst"],L:1},
+  {name:"四則の要塞",emo:"🏰",desc:"掛け算・割り算を先に計算するルールと、カッコの中から",c1:"#5b8cff",c2:"#9ee7ff",
+    boss:[{n:"ジュンバンロボ子",e:"🤖"},{n:"パフェ将軍",e:"🍨"}],
+    st:[{n:"掛け算が先頭（足し算つき）",t:["a4_mulplus"]},{n:"掛け算が先頭（引き算つき）",t:["a4_mulminus"]},{n:"掛け算が先頭ミックス",t:["a4_mulplus","a4_mulminus"]},
         {n:"掛け算が後ろの混合式（順序の罠）",t:["a4_mulback"]},
-        {n:"割り算を含む混合式",t:["a4_div"]},{n:"割り算を含む混合式 ハード",t:["a4_div","a4_mulback"],L:1},
+        {n:"割り算が先頭の混合式",t:["a4_div"]},{n:"割り算が後ろの混合式",t:["a4_divback","a4_mulback"]},
         {n:"カッコの中を先に計算",t:["a4_par"]}]},
-  {name:"魔王の城",emo:"🏯",desc:"分数で約分の快感を味わって、最後は全ワールドの総まとめ",c1:"#7a3cff",c2:"#ff2d8f",
-    boss:[{n:"ブンスウ騎士",e:"💀"},{n:"魔王ケイサン",e:"😈"}],
-    st:[{n:"同じ分母の足し算・引き算",t:["a5_fadd"]},{n:"同じ分母の足し算・引き算 その2",t:["a5_fadd"]},{n:"同じ分母の足し算・引き算 ハード",t:["a5_fadd"],L:1},
+  {name:"魔王の城",emo:"🔮",desc:"分数で約分の快感を味わって、最後は全ワールドの総まとめ",c1:"#8b5cf6",c2:"#ff8fd8",
+    boss:[{n:"ブンスウおばけ",e:"👻"},{n:"魔王ケイサン",e:"😈"}],
+    st:[{n:"同じ分母の足し算",t:["a5_fplus"]},{n:"同じ分母の引き算",t:["a5_fminus"]},{n:"同じ分母の足し算・引き算ミックス",t:["a5_fplus","a5_fminus"]},
         {n:"分母がスパッと消える掛け算",t:["a5_fmul"]},
-        {n:"逆数にして約分する割り算",t:["a5_fdiv"]},{n:"分数の掛け算・割り算ミックス",t:["a5_fdiv","a5_fmul"],L:1},
+        {n:"逆数にして約分する割り算",t:["a5_fdiv"]},{n:"分数の掛け算・割り算ミックス",t:["a5_fdiv","a5_fmul"]},
         {n:"全ワールドの総まとめ",t:["a5_final","a5_final","a1_long","a2_subneg","a3_div","a4_mulback","a4_par","a5_fmul","a5_fdiv"]}]}
 ];
 const stageName=(w,s)=>s===3?WORLDS[w].boss[0].n:s===6?WORLDS[w].boss[1].n:WORLDS[w].st[s].n;
@@ -574,11 +579,11 @@ function weaken(q){
 }
 
 const $=s=>document.querySelector(s);
-const NORMAL_N=12,BOSS_HP=[100,150],HEARTS=5,WEAK=3,DAILY=50;  // DAILY = 1日に正解したらTikTok解禁になる問題数
-const LIMIT=[6,6,7,8,8];   // ワールドごとの1問の制限時間（秒）
+const NORMAL_N=12,BOSS_HP=[100,150],HEARTS=5,WEAK=3,DAILY=50;  // DAILY = TikTok解禁ゲージが満タンになるポイント（正解1つで1、FEVER中は2）
+const LIMIT=[12,10,9,9,10];  // ワールドごとの1問の制限時間（秒）。慣れるまでの序盤は長め
 const QUICK=3;             // この秒数までに答えるとスコアとダメージが1.5倍。過ぎるとヒントが光る
 const BASE_DMG=8;          // ボスへの基本ダメージ。コンボ1つごとに+10%、FEVER中は2倍
-let sw=0,ss=0,kind,stg,qn,seen,q,typed="",t0=0,tSum=0,score,combo,maxCombo,done,okN,misses,fever,busy,running=false,
+let sw=0,ss=0,kind,stg,qn,pts,seen,q,typed="",t0=0,tSum=0,score,combo,maxCombo,done,okN,misses,fever,busy,running=false,
     weakLeft,hlOn,tRaf,tplMiss,hp,hpMax,hearts,muted=false,bi=0,bgT;
 
 /* ---------- 音 ---------- */
@@ -654,7 +659,10 @@ function showHint(){
   if(!c&&!cl.length)return;
   el.classList.add("dim");
   if(c)el.querySelector(`[data-i="${c.id}"]`).classList.add("hl");
-  cl.forEach(([o,l])=>{el.querySelector(`[data-o="${o}"]`).classList.add("hs");el.querySelector(`[data-i="${l}"] .sg`).classList.add("hs")});
+  // 塊（ピンク）があるときは、その中でぶつかる符号だけ水色にして、目線がばらけないようにする
+  const box=c&&el.querySelector(`[data-i="${c.id}"]`);
+  cl.forEach(([o,l])=>{const op=el.querySelector(`[data-o="${o}"]`);if(box&&!box.contains(op))return;
+    op.classList.add("hs");el.querySelector(`[data-i="${l}"] .sg`).classList.add("hs")});
   sfxHint();
 }
 
@@ -690,9 +698,11 @@ function burst(){
     document.body.appendChild(e);setTimeout(()=>e.remove(),750);
   }
 }
-const WORDS=["ポコン！","ナイス！","俺つえええ！","天才かよ","脳汁ドバァ","キル！","えぐい！"];
+const WORDS=["天才すぎ✨","神！！","えぐい🔥","優勝🏆","それな💯","しか勝たん💕","沼る〜🫠","ガチ盛れ📸","最強かよ👑"];
 function pop(t,id){const p=$(id||"#pop");p.textContent=t;p.classList.remove("go");void p.offsetWidth;p.classList.add("go")}
 function fx(el,c){el.classList.remove(c);void el.offsetWidth;el.classList.add(c)}
+// ダメージや攻撃の動きが終わったら、いつものふわふわに戻す
+$("#bEmo").addEventListener("animationend",e=>{if(e.animationName!=="bob")e.target.classList.remove("hit","atk")});
 function hud(){
   $("#sc").textContent=score;
   $("#cb").textContent=combo>1?combo+" COMBO":"";
@@ -706,12 +716,14 @@ function hud(){
 
 /* ---------- 親黙らせ（TikTok解禁）ゲージ：今日の正解数 ---------- */
 const today=()=>new Date().toDateString();
-function todayOk(){return myRecs.reduce((t,r)=>new Date(r.at).toDateString()===today()?t+r.ok:t,0)+(running?okN:0)}
+const todays=()=>myRecs.filter(r=>new Date(r.at).toDateString()===today());
+// 残り問題数は見せずにパーセントだけ。FEVER中の正解は2ポイントでゲージがぐんぐん伸びる
+function oyaPct(){const t=todays().reduce((t,r)=>t+(r.pts??r.ok),0)+(running?pts:0);return Math.min(100,Math.floor(t/DAILY*100))}
 function drawOya(k){
-  const t=todayOk(),full=t>=DAILY;
-  $("#oyaBar"+k).style.width=Math.min(100,t/DAILY*100)+"%";
-  $("#oyaTxt"+k).textContent=full?"解禁！親にドヤれ😎":`あと${DAILY-t}問`;
-  $("#oya"+k).classList.toggle("full",full);
+  const p=oyaPct();
+  $("#oyaBar"+k).style.width=p+"%";
+  $("#oyaTxt"+k).textContent=p>=100?"解禁🎉":p+"%";
+  $("#oya"+k).classList.toggle("full",p>=100);
 }
 
 /* ---------- 回答（テンキー・エンター不要の即判定） ---------- */
@@ -728,7 +740,7 @@ function press(k){
 function correct(){
   busy=true;draw();card.classList.add("hit");
   const dt=(performance.now()-t0)/1000,quick=dt<=QUICK,sp=quick?1.5:1;
-  okN++;done++;combo++;maxCombo=Math.max(maxCombo,combo);tSum+=dt;
+  okN++;done++;pts+=fever>0?2:1;combo++;maxCombo=Math.max(maxCombo,combo);tSum+=dt;
   // FEVER中に正解した分がクリティカル（2倍）
   const crit=fever>0;
   score+=Math.round((crit?20:10)*sp);
@@ -791,7 +803,7 @@ function startStage(w,s){
   sw=w;ss=s;kind=s===3?"mid":s===6?"big":"normal";stg=WORLDS[w].st[s];qn=0;
   audio();
   seen=new Set();tplMiss={};
-  score=0;tSum=0;combo=0;maxCombo=0;done=0;okN=0;misses=0;fever=0;busy=false;running=true;bi=0;weakLeft=WEAK;hearts=HEARTS;
+  score=0;pts=0;tSum=0;combo=0;maxCombo=0;done=0;okN=0;misses=0;fever=0;busy=false;running=true;bi=0;weakLeft=WEAK;hearts=HEARTS;
   $("#stg").textContent=sid(w,s);
   $("#prog").hidden=kind!=="normal";$("#boss").hidden=kind==="normal";
   if(kind!=="normal"){
@@ -812,7 +824,7 @@ function finish(how){
   if(how==="quit"&&done===0&&okN===0){goMap();return}
   const clear=how==="clear",stars=starsOf(clear),id=sid(sw,ss);
   if(clear)score+={normal:30,mid:60,big:100}[kind];
-  const r={at:Date.now(),st:id,n:done,ok:okN,miss:misses,sec:Math.round(tSum*10)/10,combo:maxCombo,score,clear,stars};
+  const r={at:Date.now(),st:id,n:done,ok:okN,pts,miss:misses,sec:Math.round(tSum*10)/10,combo:maxCombo,score,clear,stars};
   saveRec(r);
   if(clear&&stars>(myProg[id]||0)){myProg[id]=stars;cloud.saveProg(id,stars).catch(e=>console.error(e))}
   last={clear,id,w:sw,s:ss};
@@ -822,8 +834,8 @@ function finish(how){
   $("#rN").textContent=done;
   $("#rA").textContent=(okN+misses?Math.round(okN/(okN+misses)*100):0)+"%";
   $("#rC").textContent=maxCombo;$("#rT").textContent=dur(tSum);
-  const t=todayOk(),p=Math.min(100,Math.round(t/DAILY*100));
-  $("#rM").textContent=t>=DAILY?`📱 TikTok解禁ゲージ 100%！親にドヤ顔していいよ😎`:`📱 TikTok解禁ゲージ ${p}%（あと${DAILY-t}問）`;$("#rB").style.width=p+"%";
+  const p=oyaPct();
+  $("#rM").textContent=p>=100?"📱 TikTok解禁ゲージ 100%！今日はもう胸張っていいよ🎉":`📱 TikTok解禁ゲージ ${p}%`;$("#rB").style.width=p+"%";
   const w=Object.keys(tplMiss).sort((a,b)=>tplMiss[b]-tplMiss[a])[0];
   const gate=clear&&kind==="normal"&&stars<2;
   $("#rW").textContent=how==="lose"?"🧪 弱体化を使えば、数字が小さくなってボスに挑みやすくなるよ":gate?"❤️を3つ以上残して★2を取ると、次のステージが開くよ！":w?`次に伸ばせるのは「${T[w].n}」（ミス${tplMiss[w]}回）。手が止まると最初に計算する所が光るよ`:"ノーミス！天才かよ";
@@ -834,9 +846,11 @@ function finish(how){
   if(clear)sfxWin();
   screen("res");
 }
+// 親に送って本当に通じる、まじめな学習報告の文面
 function shareText(){
-  const t=todayOk(),{id,clear,w,s}=last;
-  return `今日Dopa-Mathで${t}問正解した！ステージ${id}「${stageName(w,s)}」${clear?"クリア":"に挑戦"}、最大${maxCombo}コンボ！ほら私こんだけ勉強したから！${t>=DAILY?"今日のノルマ達成したからTikTokやっていいよね？":""}`;
+  const l=todays(),n=l.reduce((t,r)=>t+r.n,0),ok=l.reduce((t,r)=>t+r.ok,0),ms=l.reduce((t,r)=>t+(r.miss??r.n-r.ok),0);
+  const acc=ok+ms?Math.round(ok/(ok+ms)*100):0,{id,clear,w,s}=last;
+  return `【Dopa-Math 学習報告】\n本日のトレーニング（${n}問・正解率${acc}%）を完了しました💮\n学習内容：ステージ${id}「${stageTopic(w,s)}」${clear?"クリア":"に取り組みました"}`+(oyaPct()>=100?"\n本日の目標を達成しました✅":"");
 }
 $("#share").onclick=async()=>{
   const t=shareText();
@@ -851,7 +865,7 @@ $("#mute").onclick=()=>{muted=!muted;$("#mute").textContent=muted?"🔇":"🔊"}
 
 /* ---------- ワールドマップ ---------- */
 const PTS=[[22,86],[52,79],[80,66],[52,53],[20,40],[48,26],[76,13]];
-const DECO=["🌼🌿🍀🌷","🌀🧱🗝️🕯️","🔥🪨💥🌋","🧱⚔️🛡️🚩","🦇🕯️⛓️🌙"];
+const DECO=["🌷🍓🐣🌼","🎀🍬🗝️🌀","🌶️🍉🔥✨","🧁🍭🎪🍩","🦄🌙🔮💜"];
 let mapW=0;
 const cleared=id=>(myProg[id]||0)>0;
 // 通常ステージは★2以上で次が開く。ボスは倒せば次が開く
@@ -887,7 +901,7 @@ $("#mapbox").onclick=e=>{
   $("#shEmo").textContent=boss?W.boss[s===3?0:1].e:"";$("#shEmo").hidden=!boss;
   $("#shName").textContent=stageName(mapW,s);
   const ex=makeQ(W.st[s].t,0,new Set()).text.replace(/\^2/g,"²").replace(/\^3/g,"³");
-  $("#shDesc").textContent=(boss?`「${stageTopic(mapW,s)}」で勝負！正解するとダメージ、3コンボ以上でクリティカル。まちがえると❤️が減るよ。`:"")+`例：${ex}`;
+  $("#shDesc").textContent=(boss?`「${stageTopic(mapW,s)}」で勝負！正解するとダメージ！コンボが続くほど強くなって、5コンボのFEVER中はクリティカル（2倍）。まちがえると❤️が減るよ。`:"")+`例：${ex}`;
   $("#shInfo").textContent=(boss?`ボスHP ${BOSS_HP[s===3?0:1]}`:`${NORMAL_N}問`)+`　❤️×${HEARTS}　⏱${LIMIT[mapW]}秒　🧪×${WEAK}　`+(st?"★".repeat(st)+"☆".repeat(3-st):boss?"まだ倒してないよ":"★2で次が開くよ");
   $("#sheet").hidden=false;
 };

@@ -132,6 +132,10 @@ footer{display:flex;flex-direction:column;align-items:center;margin-top:12px}
 .form label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:14px}
 .form input{font:inherit;font-size:18px;padding:13px 16px;border-radius:16px;border:2px solid transparent;background:var(--card);color:var(--text);-webkit-user-select:text;user-select:text;outline:none}
 .form input:focus{border-color:var(--pink)}
+.pw{position:relative;display:flex}
+.pw input{flex:1;min-width:0;padding-right:54px}
+.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:42px;height:42px;border:0;border-radius:12px;background:none;font-size:20px;cursor:pointer;opacity:.45}
+.pw button[aria-pressed="true"]{opacity:1}
 .form small{font-weight:400;color:var(--sub);font-size:12px}
 .form .cta{margin-top:6px}
 .form .cta:disabled{opacity:.6}
@@ -272,8 +276,7 @@ footer{display:flex;flex-direction:column;align-items:center;margin-top:12px}
   <h1 id="authT"></h1>
   <form class="form" id="authF" novalidate>
     <label>名前<input id="aName" autocomplete="username" maxlength="20" autocapitalize="off"></label>
-    <label>パスワード <small>6文字以上</small><input id="aPw" type="password"></label>
-    <label id="aPw2L">パスワード（確認）<input id="aPw2" type="password" autocomplete="new-password"></label>
+    <label>パスワード <small>6文字以上</small><span class="pw"><input id="aPw" type="password"><button type="button" id="aEye" aria-label="パスワードを表示" aria-pressed="false">👁️</button></span></label>
     <p class="err" id="aErr"></p>
     <button class="cta" id="aGo"></button>
   </form>
@@ -581,7 +584,7 @@ function weaken(q){
 }
 
 const $=s=>document.querySelector(s);
-const NORMAL_N=12,BOSS_HP=[100,150],HEARTS=5,WEAK=3,DAILY=50;  // DAILY = TikTok解禁ゲージが満タンになるポイント（正解1つで1、FEVER中は2）
+const NORMAL_N=12,BOSS_HP=[100,150],HEARTS=7,WEAK=3,DAILY=50;  // DAILY = TikTok解禁ゲージが満タンになるポイント（正解1つで1、FEVER中は2）
 const LIMIT=[12,10,9,9,10];  // ワールドごとの1問の制限時間（秒）。慣れるまでの序盤は長め
 const QUICK=3;             // この秒数までに答えるとスコアとダメージが1.5倍。過ぎるとヒントが光る
 const BASE_DMG=8;          // ボスへの基本ダメージ。コンボ1つごとに+10%、FEVER中は2倍
@@ -654,6 +657,14 @@ function tick(){
 }
 
 /* ---------- 救済①：3秒入力がなければ、最初に計算する塊とぶつかる符号を光らせる ---------- */
+// 光らせた場所に合わせて、何から計算すればいいかを一言で
+function hintText(c,cl){
+  if(!c)return "水色の符号に注目！ ＋と−がぶつかってるよ";
+  if(c.t==="p")return "💡 光っているカッコの中から計算してみて！";
+  if(c.t==="w")return "💡 光っている2乗から計算してみて！";
+  if(c.op==="×"||c.op==="÷")return "💡 光っている掛け算・割り算から先に計算してみて！";
+  return "💡 光っている左の2つから計算してみて！";
+}
 function showHint(){
   if(!running||busy||hlOn)return;
   hlOn=true;
@@ -661,6 +672,7 @@ function showHint(){
   if(!c&&!cl.length)return;
   el.classList.add("dim");
   if(c)el.querySelector(`[data-i="${c.id}"]`).classList.add("hl");
+  $("#hint").textContent=hintText(c,cl);
   // 塊（ピンク）があるときは、その中でぶつかる符号だけ水色にして、目線がばらけないようにする
   const box=c&&el.querySelector(`[data-i="${c.id}"]`);
   cl.forEach(([o,l])=>{const op=el.querySelector(`[data-o="${o}"]`);if(box&&!box.contains(op))return;
@@ -822,7 +834,8 @@ function startStage(w,s){
   if(kind!=="normal")pop("BOSS BATTLE!");
 }
 // 星は残りハートで決まる（❤️5〜4で★3、3〜2で★2、1〜0で★1）
-function starsOf(clear){return clear?hearts>=4?3:hearts>=2?2:1:0}
+const STAR3=5,STAR2=3;  // 残りハートがこの数以上で★3・★2
+function starsOf(clear){return clear?hearts>=STAR3?3:hearts>=STAR2?2:1:0}
 const nextOf=(w,s)=>s<6?[w,s+1]:w<WORLDS.length-1?[w+1,0]:null;
 let last;
 function finish(how){
@@ -844,7 +857,7 @@ function finish(how){
   $("#rM").textContent=p>=100?"📱 TikTok解禁ゲージ 100%！今日はもう胸張っていいよ🎉":`📱 TikTok解禁ゲージ ${p}%`;$("#rB").style.width=p+"%";
   const w=Object.keys(tplMiss).sort((a,b)=>tplMiss[b]-tplMiss[a])[0];
   const gate=clear&&kind==="normal"&&stars<2;
-  $("#rW").textContent=how==="lose"?"🧪 弱体化を使えば、数字が小さくなってボスに挑みやすくなるよ":gate?"❤️を3つ以上残して★2を取ると、次のステージが開くよ！":w?`次に伸ばせるのは「${T[w].n}」（ミス${tplMiss[w]}回）。手が止まると最初に計算する所が光るよ`:"ノーミス！天才すぎ✨";
+  $("#rW").textContent=how==="lose"?"🧪 弱体化を使えば、数字が小さくなってボスに挑みやすくなるよ":gate?`❤️を${STAR2}つ以上残して★2を取ると、次のステージが開くよ！`:w?`次に伸ばせるのは「${T[w].n}」（ミス${tplMiss[w]}回）。手が止まると最初に計算する所が光るよ`:"ノーミス！天才すぎ✨";
   const nx=nextOf(sw,ss);$("#nextSt").hidden=!(nx&&unlocked(...nx));
   // 負けたときや★1のときは「リトライ」を大きく出す
   const retry=how==="lose"||gate;
@@ -964,9 +977,8 @@ function openAuth(m){
   $("#authT").textContent=reg?"新規登録":"ログイン";
   $("#aGo").textContent=reg?"登録してはじめる":"ログインしてはじめる";
   $("#authSwap").textContent=reg?"もう登録してる人はこちら（ログイン）":"はじめての人はこちら（新規登録）";
-  $("#aPw2L").hidden=!reg;
   $("#aPw").autocomplete=reg?"new-password":"current-password";
-  $("#aErr").textContent="";$("#aPw").value="";$("#aPw2").value="";
+  $("#aErr").textContent="";$("#aPw").value="";showPw(false);
   screen("auth");$("#aName").focus();
 }
 const ERR={
@@ -981,7 +993,7 @@ const ERR={
 $("#authF").onsubmit=async e=>{
   e.preventDefault();
   const name=$("#aName").value.trim(),pw=$("#aPw").value,reg=authMode==="reg";
-  const bad=!name?"名前を入れてね":pw.length<6?"パスワードは6文字以上にしてね":reg&&pw!==$("#aPw2").value?"確認用のパスワードが一致しません":"";
+  const bad=!name?"名前を入れてね":pw.length<6?"パスワードは6文字以上にしてね":"";
   if(bad){$("#aErr").textContent=bad;return}
   $("#aErr").textContent="";$("#aGo").disabled=true;
   try{
@@ -990,6 +1002,9 @@ $("#authF").onsubmit=async e=>{
   }catch(err){console.error(err);$("#aErr").textContent=ERR[err.code]||"うまくいきませんでした。もう一度ためしてね"}
   finally{$("#aGo").disabled=false}
 };
+// 👁️ で入力中のパスワードを見せる（確認用の2回目の入力のかわり）
+function showPw(on){$("#aPw").type=on?"text":"password";$("#aEye").setAttribute("aria-pressed",on);$("#aEye").setAttribute("aria-label",on?"パスワードをかくす":"パスワードを表示")}
+$("#aEye").onclick=()=>{showPw($("#aPw").type==="password");$("#aPw").focus()};
 $("#goReg").onclick=()=>openAuth("reg");
 $("#goLogin").onclick=()=>openAuth("login");
 $("#goSwitch").onclick=()=>openAuth("login");

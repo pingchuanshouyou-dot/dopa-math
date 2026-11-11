@@ -84,6 +84,34 @@ service cloud.firestore {
 | `WEAK` | 弱体化の回数 | 3 |
 | `DAILY` | TikTok解禁ゲージが満タンになるポイント | 50 |
 
+## テスト
+
+変更したあとに、動きと見た目が壊れていないかを自動で確かめます。
+[Node.js](https://nodejs.org/) と Playwright（ブラウザを自動で動かす道具）を使います。
+
+```
+npm install
+npx playwright install chromium
+```
+
+| コマンド | 内容 |
+|---|---|
+| `npm test` | 問題づくりのチェックと、スマホサイズのブラウザで実際に遊ぶテスト。遊ぶテストは「端末に保存」と「ニセFirebase」の両方のモードで動かす |
+| `npm test -- engine` | ファイル名の一部を付けると、そのテストだけ動かす |
+| `npm run shot` | 主な画面14枚の写真を `tests/shots/now` に撮る |
+| `npm run compare` | `tests/shots/before` と `tests/shots/now` の写真を1ピクセル単位で比べる |
+
+見た目を変えない作業（コードの整理など）では、作業の前に撮った写真を `tests/shots/before` に置いておき、作業の後に `shot` → `compare` で「すべて同じ見た目」になることを確かめます。
+
+| ファイル | 内容 |
+|---|---|
+| `tests/engine.test.js` | 問題づくり：答えが整数か、表示どおりに計算した値と一致するか、弱体化で形が変わらないか、など |
+| `tests/e2e/auth.test.js` | 新規登録・ログイン・ログアウト |
+| `tests/e2e/stage.test.js` | 通常ステージ：入力、ハート、制限時間、ヒント、弱体化、星と解放 |
+| `tests/e2e/boss.test.js` | ボス戦：ダメージ計算、セリフ、GAME OVER |
+| `tests/e2e/screens.test.js` | 結果・記録・着せ替え・連続記録・ランク・LINEの文面・ステージ説明 |
+| `tests/e2e/mock/` | テスト用のニセFirebase |
+
 ## 開発のルール
 
 ブランチの使い方やcommitメッセージの書き方は [CONTRIBUTING.md](CONTRIBUTING.md) にまとめています。

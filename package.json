@@ -1,0 +1,13 @@
+{
+  "name": "dopa-math",
+  "private": true,
+  "description": "中1の正負の数を反復練習する計算ゲーム",
+  "scripts": {
+    "test": "node tests/run.js",
+    "shot": "node tests/visual.js shot tests/shots/now",
+    "compare": "node tests/visual.js compare tests/shots/before tests/shots/now"
+  },
+  "devDependencies": {
+    "playwright": "^1.63.0"
+  }
+}

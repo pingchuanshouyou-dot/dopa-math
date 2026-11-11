@@ -1,0 +1,93 @@
+/* プレイ画面：HUD・制限時間・ボス・問題カード・テンキー・演出 */
+#app{height:100%;display:flex;flex-direction:column;max-width:520px;margin:0 auto;padding:10px 16px 14px}
+.hud{display:flex;align-items:center;gap:10px;font-weight:800}
+.hud button{background:none;border:0;font-size:22px;cursor:pointer;color:inherit;padding:2px 4px}
+#stg{font-size:13px;background:var(--card);border-radius:99px;padding:3px 10px;white-space:nowrap}
+#sc{font-size:26px;font-variant-numeric:tabular-nums;margin-left:auto}
+#cb{font-size:16px;color:var(--pink);min-width:74px;text-align:right}
+body.fever #cb{color:#fff}
+.prog{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;font-weight:800;color:var(--sub)}
+#heartsP{letter-spacing:-2px;font-size:13px}
+/* 1問ごとの制限時間。左の明るい区間がスピードボーナス圏内 */
+.tbar{position:absolute;top:0;left:0;right:0;height:8px;border-radius:30px 30px 0 0;overflow:hidden;background:rgba(127,127,160,.18)}
+.tbar i{display:block;height:100%;width:100%;background:var(--ok);transform-origin:left;will-change:transform}
+.tbar i.mid{background:var(--gold)}
+.tbar i.low{background:var(--ng)}
+.tbar b{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.9)}
+.prog .bar{flex:1;margin:0;height:6px}
+/* ボス */
+.boss{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:20px;padding:6px 12px;margin-top:8px;position:relative}
+.bemo{font-size:44px;line-height:1;transition:filter .2s;animation:bob 1.4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-4px) rotate(-6deg) scale(1.06)}}
+.bemo.hit{animation:bhit .35s}
+.bemo.atk{animation:batk .45s}
+.bemo.dead{animation:bdead .8s forwards}
+@keyframes bhit{30%{transform:translateX(8px) rotate(12deg);filter:brightness(2.2)}60%{transform:translateX(-6px)}}
+@keyframes batk{40%{transform:scale(1.6) translateY(14px)}}
+@keyframes bdead{to{transform:scale(.2) rotate(360deg);opacity:0}}
+.binfo{flex:1;min-width:0}
+.bname{display:flex;justify-content:space-between;font-size:13px;font-weight:900}
+#hearts{letter-spacing:-2px;font-size:13px}
+.bar.hp{height:14px;margin-top:4px}
+.bar.hp i{background:linear-gradient(90deg,#ff4a4a,#ff9a3c)}
+/* ボスの吹き出し */
+.say{position:absolute;left:6px;top:calc(100% + 8px);z-index:4;max-width:calc(100% - 12px);background:var(--card);color:var(--text);font-size:13px;font-weight:800;padding:6px 12px;border-radius:14px;box-shadow:0 4px 14px rgba(80,30,140,.28);opacity:0;transform:translateY(-4px) scale(.95);transform-origin:20px 0;transition:opacity .18s,transform .18s;pointer-events:none}
+.say::before{content:"";position:absolute;left:20px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:var(--card)}
+.say.on{opacity:1;transform:none}
+.dmg{position:absolute;left:64px;right:0;top:8px;text-align:center;font-size:22px;font-weight:900;color:#ff4a4a;text-shadow:0 2px 8px rgba(0,0,0,.3);opacity:0;pointer-events:none}
+.dmg.crit{color:var(--gold);font-size:24px}
+.dmg.go{animation:pop .7s ease-out}
+#flash{position:fixed;inset:0;background:#ff0033;opacity:0;pointer-events:none;z-index:20}
+#flash.go{animation:flash .35s}
+@keyframes flash{30%{opacity:.35}}
+.bigshake{animation:bsh .45s}
+@keyframes bsh{15%{transform:translate(-14px,6px)}30%{transform:translate(12px,-8px)}45%{transform:translate(-10px,4px)}60%{transform:translate(8px,-4px)}80%{transform:translate(-4px,2px)}}
+/* 問題カード */
+#stage{flex:1;position:relative;display:flex;align-items:center;justify-content:center;min-height:0;margin-top:10px}
+#fev{position:absolute;top:0;left:0;right:0;text-align:center;font-size:26px;font-weight:900;color:#fff;letter-spacing:.05em;text-shadow:0 2px 12px rgba(0,0,0,.35);animation:pulse .4s ease-in-out infinite alternate;z-index:2;pointer-events:none}
+@keyframes pulse{to{transform:scale(1.12)}}
+.card{position:relative;width:100%;max-width:420px;height:100%;max-height:320px;background:var(--card);border-radius:30px;box-shadow:0 18px 50px rgba(80,30,140,.28);display:flex;flex-direction:column;align-items:center;justify-content:center;will-change:transform}
+.card.hit{box-shadow:0 0 0 6px var(--ok),0 18px 50px rgba(80,30,140,.28)}
+.card.miss{box-shadow:0 0 0 6px var(--ng),0 18px 50px rgba(80,30,140,.28)}
+.card.weakfx{animation:wk .5s}
+@keyframes wk{30%{transform:scale(.92) rotate(-2deg);box-shadow:0 0 0 8px #a855f7,0 0 40px #a855f7}}
+.weak{position:absolute;top:12px;right:12px;border:0;border-radius:99px;padding:6px 12px;font-size:13px;font-weight:900;color:#fff;background:linear-gradient(90deg,#a855f7,#6d28d9);cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18)}
+.weak:disabled{opacity:.35;cursor:default}
+.weak b{background:rgba(255,255,255,.25);border-radius:99px;padding:0 6px;margin-left:2px}
+#eq{text-align:center;font-weight:900;line-height:1.2;padding:22px 12px 0;width:100%}
+#eqQ{font-size:clamp(30px,9vw,44px);font-variant-numeric:tabular-nums;margin-bottom:8px}
+#eqQ.s{font-size:clamp(24px,7vw,34px)}
+#eqQ.xs{font-size:clamp(19px,5.6vw,27px)}
+#eqQ .op{margin:0 .2em}
+#eqQ sup{font-size:.55em}
+#eqQ .fr{display:inline-flex;flex-direction:column;vertical-align:middle;font-size:.66em;line-height:1.08;text-align:center;margin:0 .06em}
+#eqQ .fr span:first-child{border-bottom:.09em solid currentColor;padding:0 .12em}
+#eqQ .tk{transition:opacity .35s,color .35s,text-shadow .35s}
+#eqQ.dim .tk{opacity:.22}
+#eqQ.dim .hl .tk{opacity:1;color:#ff2d8f;text-shadow:0 0 6px #ff2d8f,0 0 18px #ff7ac0}
+#eqQ.dim .tk.hs{opacity:1;color:var(--cyan);text-shadow:0 0 6px var(--cyan),0 0 18px var(--cyan)}
+#eqR{font-size:clamp(44px,14vw,64px);color:var(--pink);font-variant-numeric:tabular-nums}
+#eqR .ph{opacity:.3;animation:blink 1s steps(2) infinite}
+#eqR.rev{color:var(--ng);font-size:clamp(30px,9vw,44px)}
+@keyframes blink{50%{opacity:.08}}
+.hint{position:absolute;bottom:14px;font-size:12px;color:var(--sub)}
+#pop{position:absolute;top:28%;left:0;right:0;text-align:center;font-size:42px;font-weight:900;color:var(--gold);text-shadow:0 3px 14px rgba(0,0,0,.35);opacity:0;pointer-events:none;z-index:3}
+#pop.go{animation:pop .6s ease-out}
+#spd{position:absolute;bottom:40px;left:0;right:0;text-align:center;font-size:26px;font-weight:900;color:#00b8ff;text-shadow:0 3px 14px rgba(0,0,0,.3);opacity:0;pointer-events:none}
+#spd.go{animation:pop .75s ease-out}
+@keyframes pop{0%{opacity:0;transform:scale(.5)}25%{opacity:1;transform:scale(1.2)}100%{opacity:0;transform:translateY(-60px) scale(1)}}
+/* テンキー */
+footer{display:flex;flex-direction:column;align-items:center;margin-top:12px}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;width:100%;max-width:420px}
+.key{height:clamp(50px,8.2vh,66px);border:0;border-radius:18px;font-size:30px;font-weight:900;background:var(--card);color:var(--text);cursor:pointer;box-shadow:0 5px 0 rgba(80,30,140,.2);touch-action:manipulation;font-variant-numeric:tabular-nums}
+.key.on{animation:puni .3s cubic-bezier(.3,1.8,.5,1)}
+@keyframes puni{0%{transform:scale(.86) translateY(3px);box-shadow:0 2px 0 rgba(80,30,140,.2)}55%{transform:scale(1.06)}100%{transform:none}}
+/* 押したキーからふわっと浮かぶハートやキラキラ */
+.kp{position:fixed;pointer-events:none;font-size:18px;z-index:6;animation:kp .7s ease-out forwards}
+@keyframes kp{from{transform:translate(-50%,-50%) scale(.5);opacity:1}to{transform:translate(calc(-50% + var(--dx)),-95px) scale(1.15);opacity:0}}
+.key.neg{color:var(--pink)}
+.key.fn{color:var(--sub);font-size:24px}
+.p{position:fixed;pointer-events:none;font-size:22px;z-index:5;animation:fly .7s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+.shake{animation:sh .3s}
+@keyframes sh{20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}

@@ -4,7 +4,7 @@
 勉強が苦手でも続けられるように、テンポのいい入力・ボス戦・ごほうび演出を詰め込んでいます。
 
 - 公開ページ（GitHub Pages）: https://pingchuanshouyou-dot.github.io/dopa-math/
-- 1つの `index.html` だけで動きます（サーバー不要）
+- サーバー不要。`index.html` をダブルクリックするだけでも動きます
 
 ## 遊び方
 
@@ -52,7 +52,7 @@
 ### Firebaseの設定手順
 
 1. [Firebaseコンソール](https://console.firebase.google.com) でプロジェクトを作る
-2. 「ウェブアプリを追加」して表示される `firebaseConfig` を、`index.html` の下の方にある `FIREBASE_CONFIG` に貼る
+2. 「ウェブアプリを追加」して表示される `firebaseConfig` を、`js/config.js` の `FIREBASE_CONFIG` に貼る
 3. 「Authentication」→「ログイン方法」で「メール/パスワード」を有効にする（名前から専用のアドレスをアプリが作るので、利用者がメールアドレスを入力することはありません）
 4. 「Authentication」→「設定」→「承認済みドメイン」に `pingchuanshouyou-dot.github.io` を追加する
 5. 「Firestore Database」を作り、「ルール」に次を貼って公開する（自分のデータは自分しか読み書きできない）
@@ -70,7 +70,7 @@ service cloud.firestore {
 
 ## 調整しやすい数値
 
-`index.html` の中の定数で、ゲームバランスを変えられます。
+`js/config.js` の定数で、ゲームバランスを変えられます。
 
 | 定数 | 意味 | 今の値 |
 |---|---|---|

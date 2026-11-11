@@ -30,8 +30,13 @@ async function shot(dir) {
   await t.ev(() => { running = true; startStage(3, 0); q = build("a4_mulplus", 1); showQ(); t0 -= 3500; });
   await p.waitForTimeout(100); await freeze(); await snap("08-hint");
   await t.ev(() => startStage(0, 3)); await p.waitForTimeout(800); await freeze(); await snap("09-boss");
-  await t.ev(() => { running = true; startStage(0, 0); }); await p.waitForTimeout(200);
-  await t.clearAll(); await snap("10-result");
+  // 実際に解くと答えるまでの秒数（計算時間・平均タイム）が毎回変わるので、決まった成績で結果画面を出す
+  await t.ev(() => {
+    running = true; startStage(0, 0);
+    done = okN = maxCombo = NORMAL_N; pts = 15; score = 180; tSum = 6; misses = 0; tplMiss = {};
+    finish("clear");
+  });
+  await snap("10-result");
   await p.click("#toMap"); await p.click("#who"); await p.click("#mRec"); await snap("11-records");
   await p.click("#recBack");
   await t.ev(() => { for (let w = 0; w < 5; w++) for (let s = 0; s < 7; s++) myProg[sid(w, s)] = 3; saveSkin({ skin: "neon" }); goMap(); });

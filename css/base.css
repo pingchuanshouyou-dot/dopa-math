@@ -1,0 +1,37 @@
+/* Dopa-Math 共通：色・テーマ・全体の基本・ゲージ・全画面で使う部品。テーマはダークモードより後に書く順番を守ること */
+:root{color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg1:#fff0f7;--bg2:#e6efff;--card:#ffffff;--text:#1d1536;--sub:#6e6890;--pink:#ff2d8f;--ok:#0fbf6a;--ng:#ff4a4a;--gold:#ffb300;--cyan:#00d8f0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#1b0a33;--bg2:#08183a;--card:#2a1d52;--text:#f6f2ff;--sub:#b0a8dc}}
+:root[data-theme="dark"]{--bg1:#1b0a33;--bg2:#08183a;--card:#2a1d52;--text:#f6f2ff;--sub:#b0a8dc}
+/* 着せ替えテーマ。ダークモードより後に書いて、選んだテーマを優先する */
+:root[data-skin="cafe"]{color-scheme:light;--bg1:#f7efe6;--bg2:#ecdcc9;--card:#fffaf4;--text:#4a3428;--sub:#9a7f6c;--pink:#c4865b;--gold:#e0ad62;--ok:#8fb07a}
+:root[data-skin="sky"]{color-scheme:light;--bg1:#eef8ff;--bg2:#dcefff;--card:#ffffff;--text:#24405c;--sub:#7d97ad;--pink:#4fb3f0;--gold:#b49cff}
+:root[data-skin="neon"]{color-scheme:dark;--bg1:#0b0b1e;--bg2:#160b30;--card:#1a1636;--text:#eafcff;--sub:#8fa0c8;--pink:#ff2bd6;--gold:#00f0ff;--ok:#39ff88}
+:root[data-skin="neon"] .key{box-shadow:0 0 0 1px rgba(0,240,255,.35),0 5px 0 rgba(0,240,255,.25)}
+:root[data-skin="oshi"]{--pink:var(--oshi,#ff2d8f)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:linear-gradient(160deg,var(--bg1),var(--bg2));color:var(--text);font-family:"Hiragino Sans","Noto Sans JP","Yu Gothic",system-ui,sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+body.fever{background:linear-gradient(120deg,#ff2d8f,#ffb300,#7a3cff,#00c2ff);background-size:300% 300%;animation:fv 1.2s linear infinite}
+@keyframes fv{0%{background-position:0% 50%}100%{background-position:100% 50%}}
+button{font-family:inherit}
+.bar{height:10px;border-radius:99px;background:rgba(127,127,160,.25);margin-top:8px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--gold));border-radius:99px;transition:width .3s}
+/* 親黙らせ（TikTok解禁）ゲージ */
+.oya{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;margin-top:6px}
+.oya .bar{flex:1;margin:0;height:12px}
+.oya .bar i{background:linear-gradient(90deg,#00f2ea,#ff0050)}
+.oya b{white-space:nowrap;font-size:12px}
+.oya.full b{color:var(--pink)}
+/* 画面いっぱいの画面 */
+.ov{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:linear-gradient(160deg,var(--bg1),var(--bg2));padding-top:calc(24px + env(safe-area-inset-top,0px));padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:10}
+.ov h1{margin:0;font-size:clamp(40px,13vw,60px);line-height:1.05;font-weight:900}
+.ov h1 em{font-style:normal;color:var(--pink)}
+.ov p{margin:0;max-width:340px;color:var(--sub);line-height:1.6}
+.topbtn{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:16px;border:0;border-radius:99px;padding:9px 16px;font-size:15px;font-weight:800;background:var(--card);color:var(--text);cursor:pointer;box-shadow:0 4px 0 rgba(80,30,140,.18);z-index:3}
+.topbtn.l{right:auto;left:16px}
+.cta{border:0;border-radius:99px;padding:16px 40px;font-size:21px;font-weight:900;color:#fff;background:linear-gradient(90deg,var(--pink),#ff7a3c);cursor:pointer;box-shadow:0 7px 0 rgba(0,0,0,.18)}
+.cta.line{background:#06c755}
+.cta.alt{background:none;color:var(--sub);box-shadow:none;font-size:15px;padding:6px}
+.cta.ghost{background:var(--card);color:var(--pink);box-shadow:0 8px 0 rgba(80,30,140,.18)}

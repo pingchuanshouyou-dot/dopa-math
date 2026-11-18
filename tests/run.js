@@ -5,15 +5,16 @@ const path = require("path");
 const { open } = require("./helpers");
 
 const only = process.argv[2] || "";
-const files = ["engine.test.js", ...fs.readdirSync(path.join(__dirname, "e2e")).filter(f => f.endsWith(".test.js")).map(f => "e2e/" + f)]
+const files = ["engine.test.js", "plus.test.js", ...fs.readdirSync(path.join(__dirname, "e2e")).filter(f => f.endsWith(".test.js")).map(f => "e2e/" + f)]
   .filter(f => f.includes(only));
 
 (async () => {
   let pass = 0, fail = 0;
   for (const f of files) {
-    const { tests, modes = ["local", "firebase"] } = require("./" + f);
+    // path: どのアプリを開くか（ドパマス＋のテストは "plus/"）
+    const { tests, modes = ["local", "firebase"], path = "" } = require("./" + f);
     for (const mode of modes) for (const { name, fn } of tests) {
-      const t = await open(mode);
+      const t = await open(mode, { path });
       const label = `${f} [${mode}] ${name}`;
       try {
         await fn(t);

@@ -42,7 +42,7 @@ async function open(mode = "local", opts = {}) {
   page.on("pageerror", e => errors.push(e.message));
   page.on("console", m => { if (m.type() === "error" && !/auth\/|Failed to load resource/.test(m.text())) errors.push(m.text()); });
   page.on("dialog", d => d.accept());
-  await page.goto(url);
+  await page.goto(url + (opts.path || ""));  // path: "plus/" ならドパマス＋を開く
   // 保存先の準備ができて、オープニングのボタンが出るまで待つ
   await page.waitForFunction(() => window.cloud && document.querySelector("#opLoad").hidden, null, { timeout: 5000 });
 

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dopa-Math＋</title>
+<!-- 画面の見た目はドパマスと共有。積分記号や穴□の見た目だけ css/plus.css で足す -->
+<link rel="stylesheet" href="../css/base.css?v=1.0.0">
+<link rel="stylesheet" href="../css/play.css?v=1.0.0">
+<link rel="stylesheet" href="../css/screens.css?v=1.0.0">
+<link rel="stylesheet" href="css/plus.css?v=1.0.0">
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="hud"><button id="quit" aria-label="マップにもどる">✕</button><span id="stg"></span><span id="sc">0</span><span id="cb"></span><button id="mute" aria-label="音のオンオフ">🔊</button></div>
+    <div class="oya" id="oyaP"><span>📱 TikTok解禁</span><div class="bar"><i id="oyaBarP"></i></div><b id="oyaTxtP"></b></div>
+  </header>
+  <div class="prog" id="prog"><div class="bar"><i id="pBar"></i></div><span id="pTxt"></span><span id="heartsP"></span></div>
+  <div class="boss" id="boss" hidden>
+    <div class="bemo" id="bEmo"></div>
+    <div class="binfo"><div class="bname"><b id="bName"></b><span id="hearts"></span></div><div class="bar hp"><i id="bHp"></i></div></div>
+    <div class="dmg" id="dmg"></div>
+    <div class="say" id="say" aria-live="polite"></div>
+  </div>
+  <main id="stage">
+    <div id="fev" hidden>🔥 FEVER TIME 🔥</div>
+    <div id="card" class="card">
+      <div class="tbar" aria-hidden="true"><i id="tBar"></i><b id="tMark"></b></div>
+      <button class="weak" id="weak" aria-label="数字を簡単にする">🧪 弱体化<b id="weakN">3</b></button>
+      <div id="eq"><div id="eqQ"></div><div id="eqR"></div></div>
+      <div class="hint" id="hint">答えを打つだけ。エンター不要！</div>
+    </div>
+    <div id="pop"></div>
+    <div id="spd"></div>
+  </main>
+  <footer>
+    <div class="pad" id="pad">
+      <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+      <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+      <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+      <button class="key neg" data-k="-" aria-label="マイナス">−</button><button class="key" data-k="0">0</button><button class="key fn" data-k="C" aria-label="クリア">C</button>
+    </div>
+  </footer>
+</div>
+<div id="flash"></div>
+
+<section id="open" class="ov">
+  <div id="fls"></div>
+  <div class="logo"><h1>Dopa<em>-</em>Math<em>＋</em></h1></div>
+  <p class="tag">積分だって、脳汁ドバァ。</p>
+  <div class="opbtns" id="opLoad"><p>読み込み中…</p></div>
+  <div class="opbtns" id="opGuest" hidden>
+    <button class="cta" id="goReg">新規登録</button>
+    <button class="cta ghost" id="goLogin">ログイン</button>
+  </div>
+  <div class="opbtns" id="opUser" hidden>
+    <button class="cta" id="goPlay">▶ はじめる</button>
+    <p id="opWho"></p>
+    <button class="cta alt" id="goSwitch">別の名前でログイン</button>
+  </div>
+  <p class="note" id="opNote"></p>
+</section>
+
+<section id="auth" class="ov" hidden>
+  <button class="topbtn l" id="authBack">← 戻る</button>
+  <h1 id="authT"></h1>
+  <form class="form" id="authF" novalidate>
+    <label>名前<input id="aName" autocomplete="username" maxlength="20" autocapitalize="off"></label>
+    <label>パスワード <small>6文字以上</small><span class="pw"><input id="aPw" type="password"><button type="button" id="aEye" aria-label="パスワードを表示" aria-pressed="false">👁️</button></span></label>
+    <p class="err" id="aErr"></p>
+    <button class="cta" id="aGo"></button>
+  </form>
+  <button class="cta alt" id="authSwap"></button>
+</section>
+
+<section id="map" class="ov" hidden>
+  <button class="topbtn l" id="who" aria-haspopup="menu"><span id="whoN"></span><small id="whoR"></small></button>
+  <div class="umenu" id="umenu" role="menu" hidden>
+    <div class="rank">
+      <div class="rk"><span>RANK</span><b id="mRank"></b></div>
+      <div class="ti"><b id="mTitle"></b><div class="bar"><i id="mBar"></i></div><small id="mNext"></small></div>
+    </div>
+    <p class="how">先のワールドほど、速く正確に解くほどXPがたまってランクが上がります</p>
+    <button class="item" id="mRec" role="menuitem">📒 記録</button>
+    <button class="item" id="mSkin" role="menuitem">🎨 着せ替え</button>
+    <button class="item out" id="mOut" role="menuitem">ログアウト</button>
+  </div>
+  <button class="topbtn" id="streak" aria-live="polite"></button>
+  <div class="oya" id="oyaM"><span>📱 TikTok解禁</span><div class="bar"><i id="oyaBarM"></i></div><b id="oyaTxtM"></b></div>
+  <div class="wnav">
+    <button class="wbtn" id="wPrev" aria-label="前のワールド">◀</button>
+    <div class="wt"><small id="wNo"></small><b id="wName"></b></div>
+    <button class="wbtn" id="wNext" aria-label="次のワールド">▶</button>
+  </div>
+  <div class="mapbox" id="mapbox"></div>
+  <p class="wdesc" id="wDesc"></p>
+  <div class="sheet" id="skinSheet" hidden>
+    <div class="in">
+      <h2>🎨 着せ替え</h2>
+      <p>星を集めたりランクを上げたりすると、新しい色が解放されるよ</p>
+      <div class="skins" id="skins"></div>
+      <div class="oshis" id="oshis" hidden></div>
+      <button class="cta alt" id="skinX">とじる</button>
+    </div>
+  </div>
+  <div class="sheet" id="sheet" hidden>
+    <div class="in">
+      <span class="no" id="shNo"></span>
+      <div class="bemo" id="shEmo"></div>
+      <h2 id="shName"></h2>
+      <p id="shDesc"></p>
+      <p id="shInfo"></p>
+      <button class="cta" id="shGo">スタート！</button>
+      <button class="cta alt" id="shX">とじる</button>
+    </div>
+  </div>
+</section>
+
+<section id="rec" class="ov" hidden>
+  <button class="topbtn l" id="recBack">← 戻る</button>
+  <h1>記録</h1>
+  <div class="recs" id="recs"></div>
+</section>
+
+<section id="res" class="ov" hidden>
+  <h1 id="rH"></h1>
+  <div class="cert"><div class="cin">
+    <div class="ctop"><span id="cStage"></span><span id="cDate"></span></div>
+    <div class="cname" id="cName"></div>
+    <div class="ctitle" id="cTitle"></div>
+    <div class="stars" id="rS"></div>
+    <div class="cbadge" id="cBadge"></div>
+    <div class="cstats">
+      <div><b id="rN">0</b><span>解いた問題</span></div>
+      <div><b id="rA">0%</b><span>正解率</span></div>
+      <div><b id="rC">0</b><span>最大コンボ</span></div>
+      <div><b id="rT">-</b><span>計算時間</span></div>
+    </div>
+    <div class="cfoot">Dopa-Math＋ 認定 <span id="cStreak"></span></div>
+  </div></div>
+  <div class="meter"><span id="rM"></span><div class="bar"><i id="rB"></i></div></div>
+  <p id="rR"></p>
+  <p id="rW"></p>
+  <button class="cta" id="nextSt">次のステージへ ▶</button>
+  <button class="cta line" id="share">LINEで送る</button>
+  <button class="cta alt" id="again">もう一回</button>
+  <button class="cta alt" id="toMap">マップへもどる</button>
+</section>
+
+<!-- 設定と問題エンジンだけドパマス＋専用。プレイ・画面・ログイン・保存のしくみはドパマスと共有 -->
+<script src="js/config.js?v=1.0.0"></script>
+<script src="js/engine.js?v=1.0.0"></script>
+<script src="../js/sound.js?v=1.0.0"></script>
+<script src="../js/game.js?v=1.0.0"></script>
+<script src="../js/screens.js?v=1.0.0"></script>
+<script src="../js/account.js?v=1.0.0"></script>
+<script src="../js/cloud.js?v=1.0.0"></script>
+</body>
+</html>

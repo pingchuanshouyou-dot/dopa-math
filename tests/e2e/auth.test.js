@@ -5,6 +5,12 @@ exports.tests = [
   { name: "テストのモードどおりの保存先で動いている", fn: async t => {
     assert.strictEqual(await t.ev(() => cloud.mode), t.mode);
   }},
+  { name: "端末に保存するときの名前は前と同じ（今までの記録が消えない）", fn: async t => {
+    if (t.mode !== "local") return;
+    await t.register("まひろ");
+    const keys = await t.ev(() => Object.keys(localStorage).sort());
+    assert.ok(keys.includes("dopamath-local-users") && keys.includes("dopamath-local-me"), keys.join(","));
+  }},
   { name: "名前とパスワードだけで登録でき、👁️でパスワードが見える", fn: async t => {
     const p = t.page;
     await p.click("#goReg");

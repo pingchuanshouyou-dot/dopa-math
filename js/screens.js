@@ -71,7 +71,6 @@ function opening(){
 
 /* ---------- ランク（1〜100） ----------
    XP = スコア × ワールドの重さ × 正解率。スコアには速さボーナス・フィーバー・クリアボーナスが入っている */
-const TIERS=["計算デビュー🐣","ゆる計算ちゃん🌱","マイナスなかよし🫧","カッコ攻略中🎀","九九ガチ勢🌶️","計算ちょい盛れ✨","四則インフルエンサー📱","分数マスター🔮","計算のカリスマ💎","計算の女神👑"];
 const need=r=>Math.round(30*Math.pow(r-1,1.9));  // ランクrになるのに必要な合計XP。100で約18.6万
 const rankOf=x=>{let r=1;while(r<100&&x>=need(r+1))r++;return r};
 const COURSE_W={basic:1,mid:1.5,high:2};  // ワールド制より前の記録用
@@ -105,7 +104,7 @@ const OSHI=["#ff3b5c","#ff8a00","#f5c400","#2ecc71","#00bcd4","#2f80ff","#8b5cf6
 const starSum=()=>Object.values(myProg).reduce((t,v)=>t+v,0);
 const skinOk=k=>{const n=SKINS[k].need;return !n||(n.stars?starSum()>=n.stars:rankOf(myXp)>=n.rank)};
 const skinsOpen=()=>Object.keys(SKINS).filter(skinOk);
-const skinKey=()=>"dopamath-skin:"+(me?me.id:"");
+const skinKey=()=>APP.key+"-skin:"+(me?me.id:"");
 function loadSkin(){try{return JSON.parse(localStorage.getItem(skinKey()))||{}}catch(e){return {}}}
 function applySkin(){
   const {skin,oshi}=me?loadSkin():{},k=skin&&SKINS[skin]&&skinOk(skin)?skin:"base",r=document.documentElement;

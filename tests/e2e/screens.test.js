@@ -1,4 +1,4 @@
-// マップ・結果・記録・着せ替え・連続記録・ランク・LINEの文面
+// マップ・結果・記録・着せ替え・連続記録・ランク・学習レポートの文面
 const assert = require("assert");
 
 async function clear11(t) {
@@ -18,13 +18,17 @@ exports.tests = [
     assert.match(await p.textContent("#cStreak"), /1日連続/);
     assert.match(await p.textContent("#rR"), /XP/);
   }},
-  { name: "TikTok解禁ゲージはパーセントだけ表示", fn: async t => {
+  { name: "ごほうびゲージはパーセントだけ表示し、他社の名前は画面に出さない", fn: async t => {
     await clear11(t);
     assert.match(await t.page.textContent("#rM"), /\d+%$/);
     await t.page.click("#toMap");
     assert.match(await t.page.textContent("#oyaTxtM"), /^\d+%$/);
+    // ストアのスクショに写るので、他社のサービス名や「親を黙らせる」系の言葉は画面のどこにも出さない
+    const all = await t.ev(() => document.body.innerText);
+    assert.ok(!/TikTok|親黙らせ|黙らせ/.test(all), "画面に出してはいけない言葉がある");
+    assert.match(await t.page.textContent("#share"), /学習レポート/);
   }},
-  { name: "LINE の文面は親向けの学習報告", fn: async t => {
+  { name: "学習レポートの文面は保護者向けのまじめな報告", fn: async t => {
     await clear11(t);
     const s = await t.ev(() => shareText());
     assert.match(s, /^【Dopa-Math 学習報告】\n本日のトレーニング（12問・正解率100%）を完了しました💮/);

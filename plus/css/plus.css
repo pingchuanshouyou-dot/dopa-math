@@ -1,0 +1,13 @@
+/* Dopa-Math＋ だけで使う見た目：積分記号・定積分の端・答えの穴□・数式の x。色はドパマスと同じ変数を使う */
+#open h1{font-size:clamp(38px,12vw,76px)}
+/* 数式の文字（x）は数学らしい斜体に */
+#eqQ i,#eqR i{font-family:"Times New Roman","Hiragino Mincho ProN",serif;font-style:italic;font-weight:700;padding-right:.04em}
+/* 積分記号。定積分は右に上端・下端を縦に並べる */
+#eqQ .int{display:inline-flex;align-items:center;font-size:1.25em;line-height:1;margin-right:.08em;font-weight:400}
+#eqQ .int .lim{display:inline-flex;flex-direction:column;justify-content:space-between;font-size:.42em;line-height:1.15;margin-left:-.05em;font-weight:800;align-self:stretch}
+#eqQ .int .lim sup{font-size:.7em}
+/* 答えを入れる穴。点線の四角で、ピンク（着せ替えの色）に光る */
+.bl{display:inline-block;min-width:1em;padding:0 .08em;border:.08em dashed var(--pink);border-radius:.2em;color:var(--pink);line-height:1.05;text-align:center;font-weight:900}
+#eqQ .fr .bl{border-width:.1em}
+/* 積分のヒントの一言は長めなので、カードの左右に余白をとって真ん中にそろえる */
+.hint{left:14px;right:14px;text-align:center;line-height:1.4}

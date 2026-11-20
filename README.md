@@ -44,6 +44,32 @@
 
 各ワールドは7ステージ（4面が中ボス、7面が大ボス）。答えはすべて整数になるように問題を作っています。
 
+## ドパマス＋（積分）
+
+ドパマスと同じ画面・仕組みのまま、数学IIIの積分を出す姉妹アプリです。`plus/` フォルダに入っています。
+
+- 公開ページ: https://pingchuanshouyou-dot.github.io/dopa-math/plus/
+- 積分の答えは式なので、**答えの式に1つだけ穴 □ をあけ、穴に入る整数をテンキーで打つ**形にしています（例：`∫ 6x² dx = □x³ + C` → `2`）
+- 記録・アカウント・着せ替えはドパマスと別々に保存されます
+
+| ワールド | テーマ | 内容 |
+|---|---|---|
+| 1 べき乗の草原 | 基本の関数 | xⁿ、多項式、sin・cos、eˣ と 1/x、1/x²・√x |
+| 2 合成の渓谷 | (ax+b) のかたまり | (ax+b)ⁿ、e^(ax+b)、sin・cos(ax+b)、1/(ax+b)、√(ax+b) |
+| 3 置換の森 | 置換積分 | x(x²+c)ⁿ、x e^(x²)、sinⁿx cos x、分子が分母の微分、(log x)ⁿ/x・eˣ(eˣ+c)ⁿ |
+| 4 部分の洞窟 | 部分積分 | (x+k)eˣ・x e^(ax)、(x+k)sin・cos、log x・xⁿ log x、x² eˣ（2回）、eˣ sin・cos |
+| 5 定積分の天空城 | 定積分と総まとめ | 多項式、sin・cos・1/x、答えが 1/n になる定積分、部分積分の定積分、全部のまとめ |
+
+ドパマスとちがうのは次のファイルだけで、プレイ・画面・ログイン・保存のしくみ（`js/` の sound・game・screens・account・cloud）と見た目（`css/`）はドパマスのものを共有しています。ドパマスを直すと、ドパマス＋も同じように直ります。
+
+```
+plus/
+  index.html        画面の骨組み（タイトルなどの文字と、読み込むファイル）
+  css/plus.css      積分記号・定積分の端・答えの穴 □ の見た目
+  js/config.js      名前・保存場所・称号・制限時間（積分は考える時間が長いので長め）など
+  js/engine.js      積分の問題づくり。T の各型は短い記法で式を書く（ファイルの先頭に説明あり）
+```
+
 ## ファイル構成
 
 ```
@@ -105,6 +131,10 @@ service cloud.firestore {
     match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
+    // ドパマス＋（積分）の保存場所
+    match /plus_users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
   }
 }
 ```
@@ -147,6 +177,7 @@ npx playwright install chromium
 | ファイル | 内容 |
 |---|---|
 | `tests/engine.test.js` | 問題づくり：答えが整数か、表示どおりに計算した値と一致するか、弱体化で形が変わらないか、など |
+| `tests/plus.test.js` | ドパマス＋：穴に答えを入れた式を数値で微分して元の関数にもどるか（定積分は数値積分の値と合うか）、弱体化、重複、遊んでクリア・ボス |
 | `tests/e2e/auth.test.js` | 新規登録・ログイン・ログアウト |
 | `tests/e2e/stage.test.js` | 通常ステージ：入力、ハート、制限時間、ヒント、弱体化、星と解放 |
 | `tests/e2e/boss.test.js` | ボス戦：ダメージ計算、セリフ、GAME OVER |

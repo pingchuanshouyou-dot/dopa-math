@@ -42,6 +42,17 @@
   </footer>
 </div>
 <div id="flash"></div>
+<div class="sheet" id="gate" hidden>
+  <form class="in" id="gateF" novalidate>
+    <span class="no">保護者の方へ</span>
+    <h2>保護者の確認</h2>
+    <p>つづけるには、あなたの生まれた年を西暦（4けた）で入力してください</p>
+    <input id="gateA" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="生まれた年（西暦4けた）">
+    <p class="err" id="gateErr"></p>
+    <button class="cta" id="gateGo">つぎへ</button>
+    <button class="cta alt" type="button" id="gateX">やめる</button>
+  </form>
+</div>
 
 <section id="open" class="ov">
   <div id="fls"></div>
@@ -83,6 +94,7 @@
     <p class="how">先のワールドほど、速く正確に解くほどXPがたまってランクが上がります</p>
     <button class="item" id="mRec" role="menuitem">📒 記録</button>
     <button class="item" id="mSkin" role="menuitem">🎨 着せ替え</button>
+    <button class="item" id="mParent" role="menuitem">👪 保護者メニュー</button>
     <button class="item out" id="mOut" role="menuitem">ログアウト</button>
   </div>
   <button class="topbtn" id="streak" aria-live="polite"></button>
@@ -122,6 +134,26 @@
   <div class="recs" id="recs"></div>
 </section>
 
+<section id="parent" class="ov" hidden>
+  <button class="topbtn l" id="parentBack">← 戻る</button>
+  <h1>保護者メニュー</h1>
+  <p class="ptoday" id="pToday"></p>
+  <div class="pset">
+    <label>1日の目安時間<select id="pDaily"><option value="0">なし</option><option value="20">20分</option><option value="30">30分</option><option value="45">45分</option><option value="60">60分</option></select></label>
+    <label class="pchk"><input type="checkbox" id="pHard">目安時間をこえたら、その日は遊べないようにする</label>
+    <label>休憩の声かけ<select id="pBreak"><option value="0">なし</option><option value="10">10分ごと</option><option value="15">15分ごと</option><option value="20">20分ごと</option></select></label>
+    <label class="pchk"><input type="checkbox" id="pCalm">演出をひかえめにする（フィーバーの虹色・画面のゆれ・赤い点滅・紙吹雪を止める）</label>
+  </div>
+  <p class="note">この設定は、この端末で遊ぶ全員に使われます</p>
+</section>
+
+<section id="rest" class="ov" hidden>
+  <div class="bemo" aria-hidden="true">🌙</div>
+  <h1>今日はここまで</h1>
+  <p id="restMsg"></p>
+  <button class="cta" id="restBack">マップへもどる</button>
+</section>
+
 <section id="res" class="ov" hidden>
   <h1 id="rH"></h1>
   <div class="cert"><div class="cin">
@@ -141,6 +173,7 @@
   <div class="meter"><span id="rM"></span><div class="bar"><i id="rB"></i></div></div>
   <p id="rR"></p>
   <p id="rW"></p>
+  <p class="care" id="rCare" hidden></p>
   <button class="cta" id="nextSt">次のステージへ ▶</button>
   <button class="cta line" id="share">📝 学習レポートを送る</button>
   <button class="cta alt" id="again">もう一回</button>
@@ -154,6 +187,7 @@
 <script src="js/game.js?v=1.0.0"></script>
 <script src="js/screens.js?v=1.0.0"></script>
 <script src="js/account.js?v=1.0.0"></script>
+<script src="js/parent.js?v=1.0.0"></script>
 <script src="js/cloud.js?v=1.0.0"></script>
 </body>
 </html>

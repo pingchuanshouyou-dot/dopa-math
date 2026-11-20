@@ -90,4 +90,10 @@ footer{display:flex;flex-direction:column;align-items:center;margin-top:12px}
 .p{position:fixed;pointer-events:none;font-size:22px;z-index:5;animation:fly .7s ease-out forwards}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
 .shake{animation:sh .3s}
+/* 演出をひかえめに（保護者メニュー）：フィーバーの虹色・画面のゆれ・赤い点滅・ボスの揺れ・キーから出る絵文字を止める */
+body.calm.fever{animation:none;background:linear-gradient(160deg,var(--bg1),var(--bg2))}
+body.calm.fever #cb{color:var(--pink)}
+.calm #fev{animation:none;color:var(--pink);text-shadow:none}
+.calm .shake,.calm .bigshake,.calm #flash.go,.calm .bemo{animation:none}
+.calm .kp{display:none}
 @keyframes sh{20%{transform:translateX(-12px)}40%{transform:translateX(12px)}60%{transform:translateX(-8px)}80%{transform:translateX(8px)}}

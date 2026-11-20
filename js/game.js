@@ -89,6 +89,7 @@ function enter(){
   card.classList.remove("hit","miss");
 }
 function burst(){
+  if(calm())return;  // 演出をひかえめにする設定（js/parent.js）
   const r=card.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;
   const em=fever>0?["🔥","⭐","✨"]:["✨","⭐","💥"];
   for(let i=0;i<14;i++){
@@ -222,6 +223,8 @@ document.addEventListener("keydown",e=>{
 
 /* ---------- ステージ開始と結果 ---------- */
 function startStage(w,s){
+  if(!mayStart())return;  // 目安時間をこえて「遊べないようにする」設定のとき（js/parent.js）
+  playStart();
   runId++;sw=w;ss=s;kind=s===3?"mid":s===6?"big":"normal";stg=WORLDS[w].st[s];qn=0;
   audio();
   seen=new Set();tplMiss={};
@@ -243,10 +246,11 @@ const nextOf=(w,s)=>s<6?[w,s+1]:w<WORLDS.length-1?[w+1,0]:null;
 let last;
 function finish(how){
   running=false;busy=false;clearTimeout(bgT);cancelAnimationFrame(tRaf);document.body.classList.remove("fever");
+  const play=playEnd();  // このステージで遊んだ時間（秒）
   if(how==="quit"&&done===0&&okN===0){goMap();return}
   const clear=how==="clear",stars=starsOf(clear),id=sid(sw,ss);
   if(clear)score+={normal:30,mid:60,big:100}[kind];
-  const r={at:Date.now(),st:id,n:done,ok:okN,pts,miss:misses,sec:Math.round(tSum*10)/10,combo:maxCombo,score,clear,stars};
+  const r={at:Date.now(),st:id,n:done,ok:okN,pts,miss:misses,sec:Math.round(tSum*10)/10,play,combo:maxCombo,score,clear,stars};
   saveRec(r);
   const had=skinsOpen();
   if(clear&&stars>(myProg[id]||0)){myProg[id]=stars;cloud.saveProg(id,stars).catch(e=>console.error(e))}
@@ -273,6 +277,9 @@ function finish(how){
   // 負けたときや★1のときは「リトライ」を大きく出す
   const retry=how==="lose"||gate;
   $("#again").className=retry?"cta":"cta alt";$("#again").textContent=retry?"🔁 リトライ":"もう一回";
+  // 遊びすぎ対策のひとこと（js/parent.js）。「遊べないようにする」設定なら、次のステージともう一回を出さない
+  const care=careNote();$("#rCare").hidden=!care;$("#rCare").textContent=care?care.t:"";
+  $("#again").hidden=!!care?.stop;if(care?.stop)$("#nextSt").hidden=true;
   if(fresh.length)$("#rR").textContent+=`　🎨 着せ替え「${SKINS[fresh[0]].n}」が解放されたよ！`;
   if(clear)sfxWin();
   screen("res");

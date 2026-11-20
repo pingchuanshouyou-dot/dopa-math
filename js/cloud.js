@@ -1,4 +1,4 @@
-/* Dopa-Math 保存先：Firebase（js/config.js の FIREBASE_CONFIG が入っているとき）か、この端末の中（localStorage）。
+/* Dopa-Math 保存先：Firebase（js/config.js の FIREBASE_CONFIG が入っているとき）か、この端末の中（js/device.js の Store）。
    ダブルクリック（file://）でも開けるように普通の script にして、Firebase は中から import() で読み込む */
 (async()=>{
 "use strict";
@@ -32,23 +32,24 @@ if(FIREBASE_CONFIG.apiKey){
   A.onAuthStateChanged(auth,u=>onAuth(who(u)));
 }else{
   const UK=APP.key+"-local-users",MK=APP.key+"-local-me";
-  const load=()=>{try{return JSON.parse(localStorage.getItem(UK))||{}}catch(e){return {}}};
-  const keep=u=>localStorage.setItem(UK,JSON.stringify(u));
+  await Store.ready();  // アプリの中では、保存してある分を読み込み終わるまで待つ
+  const load=()=>{try{return JSON.parse(Store.get(UK))||{}}catch(e){return {}}};
+  const keep=u=>Store.set(UK,JSON.stringify(u));
   const who=k=>{const u=load()[k];return u&&{id:k,name:u.name}};
-  const edit=f=>{const u=load(),k=localStorage.getItem(MK);f(u[k]);keep(u)};
+  const edit=f=>{const u=load(),k=Store.get(MK);f(u[k]);keep(u)};
   cloud={
     mode:"local",
-    async register(name,pw){const u=load(),k=norm(name);if(u[k])throw fail("auth/email-already-in-use");const salt=crypto.randomUUID();u[k]={name,salt,pw:await sha(salt+pw),recs:[]};keep(u);localStorage.setItem(MK,k);return who(k)},
-    async login(name,pw){const k=norm(name),x=load()[k];if(!x||x.pw!==await sha(x.salt+pw))throw fail("auth/invalid-credential");localStorage.setItem(MK,k);return who(k)},
-    async logout(){localStorage.removeItem(MK)},
+    async register(name,pw){const u=load(),k=norm(name);if(u[k])throw fail("auth/email-already-in-use");const salt=crypto.randomUUID();u[k]={name,salt,pw:await sha(salt+pw),recs:[]};keep(u);Store.set(MK,k);return who(k)},
+    async login(name,pw){const k=norm(name),x=load()[k];if(!x||x.pw!==await sha(x.salt+pw))throw fail("auth/invalid-credential");Store.set(MK,k);return who(k)},
+    async logout(){Store.remove(MK)},
     async addRecord(r){edit(x=>{x.recs.unshift(r);x.recs=x.recs.slice(0,300)})},
-    async listRecords(){return [...(load()[localStorage.getItem(MK)]?.recs||[])]},
-    async getProfile(){const x=load()[localStorage.getItem(MK)]||{};return {xp:x.xp??null,prog:x.prog||{}}},
+    async listRecords(){return [...(load()[Store.get(MK)]?.recs||[])]},
+    async getProfile(){const x=load()[Store.get(MK)]||{};return {xp:x.xp??null,prog:x.prog||{}}},
     async setXp(v){edit(x=>x.xp=v)},
     async addXp(v){edit(x=>x.xp=(x.xp||0)+v)},
     async saveProg(id,stars){edit(x=>{x.prog=x.prog||{};x.prog[id]=stars})}
   };
   window.cloud=cloud;
-  onAuth(who(localStorage.getItem(MK))||null);
+  onAuth(who(Store.get(MK))||null);
 }
 })();

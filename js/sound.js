@@ -7,7 +7,7 @@ function audio(){
   if(ac&&ac.state==="suspended")ac.resume();
 }
 function tone(f,d,type,v,when){
-  if(!ac||muted)return;
+  if(!ac||muted||ac.state!=="running")return;  // 止まっている間に作った音は、再開したときにまとめて鳴ってしまう
   const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+(when||0);
   o.type=type;o.frequency.value=f;
   g.gain.setValueAtTime(v,s);g.gain.exponentialRampToValueAtTime(.001,s+d);
@@ -22,6 +22,8 @@ function sfxNg(){tone(160,.25,"sawtooth",.14);tone(110,.3,"sawtooth",.14,.12)}
 function sfxCrit(){tone(90,.35,"square",.2);tone(1400,.15,"sawtooth",.08,.02);tone(1900,.2,"triangle",.1,.08)}
 function sfxHint(){tone(1320,.08,"sine",.08);tone(1760,.12,"sine",.07,.07)}
 function sfxWin(){[1,1.25,1.5,2,2.5].forEach((m,i)=>tone(523*m,.35,"triangle",.12,i*.1))}
+// アプリが裏に回ったら音を止め、戻ってきたら再開する
+document.addEventListener("visibilitychange",()=>{if(!ac)return;if(document.hidden)ac.suspend();else ac.resume()});
 const SC=[0,2,4,7,9,12,9,7];
 function bgm(){
   clearTimeout(bgT);if(!running)return;

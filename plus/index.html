@@ -14,12 +14,12 @@
 <div id="app">
   <header>
     <div class="hud"><button id="quit" aria-label="マップにもどる">✕</button><span id="stg"></span><span id="sc">0</span><span id="cb"></span><button id="mute" aria-label="音のオンオフ">🔊</button></div>
-    <div class="oya" id="oyaP"><span>🎁 ごほうび</span><div class="bar"><i id="oyaBarP"></i></div><b id="oyaTxtP"></b></div>
+    <div class="oya" id="oyaP" role="progressbar" aria-label="今日のごほうびゲージ" aria-valuemin="0" aria-valuemax="100"><span>🎁 ごほうび</span><div class="bar"><i id="oyaBarP"></i></div><b id="oyaTxtP"></b></div>
   </header>
-  <div class="prog" id="prog"><div class="bar"><i id="pBar"></i></div><span id="pTxt"></span><span id="heartsP"></span></div>
+  <div class="prog" id="prog"><div class="bar"><i id="pBar"></i></div><span id="pTxt"></span><span id="heartsP" role="img"></span></div>
   <div class="boss" id="boss" hidden>
     <div class="bemo" id="bEmo"></div>
-    <div class="binfo"><div class="bname"><b id="bName"></b><span id="hearts"></span></div><div class="bar hp"><i id="bHp"></i></div></div>
+    <div class="binfo"><div class="bname"><b id="bName"></b><span id="hearts" role="img"></span></div><div class="bar hp"><i id="bHp"></i></div></div>
     <div class="dmg" id="dmg"></div>
     <div class="say" id="say" aria-live="polite"></div>
   </div>
@@ -28,7 +28,8 @@
     <div id="card" class="card">
       <div class="tbar" aria-hidden="true"><i id="tBar"></i><b id="tMark"></b></div>
       <button class="weak" id="weak" aria-label="数字を簡単にする">🧪 弱体化<b id="weakN">3</b></button>
-      <div id="eq"><div id="eqQ"></div><div id="eqR"></div></div>
+      <div id="eq" role="img"><div id="eqQ"></div><div id="eqR"></div></div>
+      <p id="sr" class="sr" aria-live="assertive"></p>
       <div class="hint" id="hint">答えを打つだけ。エンター不要！</div>
     </div>
     <div id="pop"></div>
@@ -100,7 +101,7 @@
     <button class="item out" id="mOut" role="menuitem">ログアウト</button>
   </div>
   <button class="topbtn" id="streak" aria-live="polite"></button>
-  <div class="oya" id="oyaM"><span>🎁 ごほうび</span><div class="bar"><i id="oyaBarM"></i></div><b id="oyaTxtM"></b></div>
+  <div class="oya" id="oyaM" role="progressbar" aria-label="今日のごほうびゲージ" aria-valuemin="0" aria-valuemax="100"><span>🎁 ごほうび</span><div class="bar"><i id="oyaBarM"></i></div><b id="oyaTxtM"></b></div>
   <div class="wnav">
     <button class="wbtn" id="wPrev" aria-label="前のワールド">◀</button>
     <div class="wt"><small id="wNo"></small><b id="wName"></b></div>

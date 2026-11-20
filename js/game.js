@@ -20,11 +20,31 @@ function showQ(){
   const el=$("#eqQ");el.className=q.text.length>26?"xs":q.text.length>15?"s":"";
   el.innerHTML=html(q.ast);
   $("#eqR").className="";draw();
+  $("#eq").setAttribute("aria-label",spoken(q.text)+(q.lead?"":" イコール？"));
+  sr("問題。"+$("#eq").getAttribute("aria-label")+(q.lead?" しかくに入る数は？":""));
   $("#weak").disabled=weakLeft<=0||q.weak;$("#weakN").textContent=weakLeft;
   $("#hint").textContent=q.weak?"🧪 弱体化中！ルールは同じ、数字だけ小さくしたよ":"答えを打つだけ。エンター不要！";
   t0=performance.now();
 }
 const show=t=>t.replace("-","−");
+/* ---------- 読み上げ（VoiceOver）----------
+   式は記号の組み合わせなので、そのままだと読み上げがわかりにくい。日本語の読み方にして、
+   画面には出さない読み上げ用の場所（#sr）に入れる */
+const SAY_SUP={"⁰":"0","¹":"1","²":"2","³":"3","⁴":"4","⁵":"5","⁶":"6","⁷":"7","⁸":"8","⁹":"9","ˣ":"x","⁻":"マイナス","⁺":"プラス","⁽":"","⁾":""};
+function spoken(t){
+  return t
+    .replace(/∫\((.+?)→(.+?)\)/g,"$1から$2までの積分 ").replace(/∫/g,"積分 ")
+    .replace(/\^\((.+?)\)/g,(m,a)=>"の"+[...a].map(c=>SAY_SUP[c]??c).join("")+"乗").replace(/\^(\w+)/g,"の$1乗")
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹ˣ⁺⁻⁽⁾]+/g,m=>"の"+[...m].map(c=>SAY_SUP[c]).join("")+"乗")
+    .replace(/([\dπ]+)\/(\d+)/g,"$2ぶんの$1")
+    .replace(/ − /g," ひく ").replace(/ \+ /g," たす ").replace(/ × /g," かける ").replace(/ ÷ /g," わる ").replace(/ = /g," イコール ")
+    .replace(/−/g,"マイナス").replace(/\+/g,"プラス").replace(/\//g," わる ")
+    .replace(/\(/g," かっこ ").replace(/\)/g," かっことじ ")
+    .replace(/√/g,"ルート").replace(/π/g,"パイ").replace(/□/g," しかく ").replace(/\bdx\b/g,"ディーエックス")
+    .replace(/log/g," ログ ").replace(/sin/g," サイン ").replace(/cos/g," コサイン ").replace(/\|/g," ")
+    .replace(/\s+/g," ").trim();
+}
+const sr=t=>{$("#sr").textContent=t};
 // 答えの行の頭。ふつうは「= 」。穴うめの問題では問題の側で q.lead を決める
 function draw(){$("#eqR").innerHTML=(q.lead??"= ")+(typed?show(typed):`<span class="ph">?</span>`)}
 
@@ -122,7 +142,8 @@ function hud(){
   $("#cb").textContent=combo>1?combo+" COMBO":"";
   document.body.classList.toggle("fever",fever>0);
   $("#fev").hidden=!(fever>0);
-  const h="❤️".repeat(hearts)+"🤍".repeat(HEARTS-hearts);
+  const h="❤️".repeat(hearts)+"🤍".repeat(HEARTS-hearts),hl=`ハート のこり${hearts}こ（${HEARTS}こ中）`;
+  $("#heartsP").setAttribute("aria-label",hl);$("#hearts").setAttribute("aria-label",hl);
   if(kind==="normal"){$("#pBar").style.width=done/NORMAL_N*100+"%";$("#pTxt").textContent=`${done} / ${NORMAL_N}`;$("#heartsP").textContent=h}
   else{$("#bHp").style.width=Math.max(0,hp/hpMax*100)+"%";$("#hearts").textContent=h}
   drawOya("P");
@@ -135,7 +156,7 @@ const todays=()=>myRecs.filter(r=>new Date(r.at).toDateString()===today());
 function oyaPct(){const t=todays().reduce((t,r)=>t+(r.pts??r.ok),0)+(running?pts:0);return Math.min(100,Math.floor(t/DAILY*100))}
 function drawOya(k){
   const p=oyaPct();
-  $("#oyaBar"+k).style.width=p+"%";
+  $("#oyaBar"+k).style.width=p+"%";$("#oya"+k).setAttribute("aria-valuenow",p);
   $("#oyaTxt"+k).textContent=p>=100?"達成🎉":p+"%";
   $("#oya"+k).classList.toggle("full",p>=100);
 }
@@ -152,7 +173,7 @@ function press(k){
   if(typed===want)correct();else draw();
 }
 function correct(){
-  busy=true;draw();card.classList.add("hit");
+  busy=true;draw();card.classList.add("hit");sr("正解！");
   const dt=(performance.now()-t0)/1000,quick=dt<=QUICK,sp=quick?1.5:1;
   okN++;done++;pts+=fever>0?2:1;combo++;maxCombo=Math.max(maxCombo,combo);tSum+=dt;
   // FEVER中に正解した分がクリティカル（2倍）
@@ -189,6 +210,7 @@ function miss(){
   if(hurt())return;
   // まちがえた最後の1文字だけ消す。合っていた所（−1 など）は残して、そこから打ち直せる
   typed=typed.slice(0,-1);
+  sr("ちがうよ。"+(typed?"いまは "+spoken(show(typed))+"。":"")+"もう一度");
   // 答えは見せない。時間内なら同じ問題にもう一度チャレンジ
   later(()=>{draw();card.classList.remove("miss");busy=false},350);
 }
@@ -196,7 +218,7 @@ function timeUp(){
   busy=true;
   if(hurt())return;
   pop("⏰ 時間切れ！");
-  $("#eqR").className="rev";$("#eqR").textContent="答えは "+show(String(q.ans));done++;
+  $("#eqR").className="rev";$("#eqR").textContent="答えは "+show(String(q.ans));sr("時間切れ。答えは "+spoken(show(String(q.ans))));done++;
   later(()=>{if(kind==="normal"&&done>=NORMAL_N){finish("clear");return}nextQ();busy=false},1100);
 }
 
@@ -208,11 +230,17 @@ function kiss(x,y){
   e.style.left=x+"px";e.style.top=y+"px";e.style.setProperty("--dx",rnd(-24,24)+"px");
   document.body.appendChild(e);setTimeout(()=>e.remove(),720);
 }
+let padPtr=0;
 $("#pad").addEventListener("pointerdown",e=>{
   const b=e.target.closest(".key");if(!b)return;
-  e.preventDefault();
+  e.preventDefault();padPtr=Date.now();
   fx(b,"on");kiss(e.clientX,e.clientY);haptic("tap");
   press(b.dataset.k);
+});
+// VoiceOver のダブルタップやキーボードの Enter は pointerdown が来ないことがあるので click でも受ける（二重にならないように）
+$("#pad").addEventListener("click",e=>{
+  const b=e.target.closest(".key");if(!b||Date.now()-padPtr<800)return;
+  haptic("tap");press(b.dataset.k);
 });
 document.addEventListener("keydown",e=>{
   if(!running)return;

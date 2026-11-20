@@ -14,8 +14,8 @@ if(FIREBASE_CONFIG.apiKey){
   // Firebaseはメールアドレスでしか登録できないので、名前から決まった形のアドレスを作る
   const mail=async n=>"u"+(await sha(norm(n))).slice(0,40)+"@users.dopa-math.app";
   const who=u=>u&&{id:u.uid,name:u.displayName||""};
-  const recs=()=>F.collection(db,"users",auth.currentUser.uid,"records");
-  const prof=()=>F.doc(db,"users",auth.currentUser.uid);
+  const recs=()=>F.collection(db,APP.db,auth.currentUser.uid,"records");
+  const prof=()=>F.doc(db,APP.db,auth.currentUser.uid);
   cloud={
     mode:"firebase",
     async register(name,pw){const c=await A.createUserWithEmailAndPassword(auth,await mail(name),pw);await A.updateProfile(c.user,{displayName:name});return who(c.user)},
@@ -31,7 +31,7 @@ if(FIREBASE_CONFIG.apiKey){
   window.cloud=cloud;
   A.onAuthStateChanged(auth,u=>onAuth(who(u)));
 }else{
-  const UK="dopamath-local-users",MK="dopamath-local-me";
+  const UK=APP.key+"-local-users",MK=APP.key+"-local-me";
   const load=()=>{try{return JSON.parse(localStorage.getItem(UK))||{}}catch(e){return {}}};
   const keep=u=>localStorage.setItem(UK,JSON.stringify(u));
   const who=k=>{const u=load()[k];return u&&{id:k,name:u.name}};

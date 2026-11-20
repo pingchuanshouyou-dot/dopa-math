@@ -25,7 +25,8 @@ function showQ(){
   t0=performance.now();
 }
 const show=t=>t.replace("-","−");
-function draw(){$("#eqR").innerHTML="= "+(typed?show(typed):`<span class="ph">?</span>`)}
+// 答えの行の頭。ふつうは「= 」。穴うめの問題では問題の側で q.lead を決める
+function draw(){$("#eqR").innerHTML=(q.lead??"= ")+(typed?show(typed):`<span class="ph">?</span>`)}
 
 /* ---------- 制限時間：3秒でヒント、時間切れでハートが減って次の問題へ ---------- */
 function tick(){
@@ -56,7 +57,8 @@ function showHint(){
   if(!c&&!cl.length)return;
   el.classList.add("dim");
   if(c)el.querySelector(`[data-i="${c.id}"]`).classList.add("hl");
-  $("#hint").textContent=hintText(c,cl);
+  // 問題の側に一言ガイド（hintFor）があればそれを使う
+  $("#hint").textContent=typeof hintFor==="function"?hintFor(q):hintText(c,cl);
   // 塊（ピンク）があるときは、その中でぶつかる符号だけ水色にして、目線がばらけないようにする
   const box=c&&el.querySelector(`[data-i="${c.id}"]`);
   cl.forEach(([o,l])=>{const op=el.querySelector(`[data-o="${o}"]`);if(box&&!box.contains(op))return;
@@ -284,7 +286,7 @@ function reflex(avg){
 function shareText(){
   const l=todays(),n=l.reduce((t,r)=>t+r.n,0),ok=l.reduce((t,r)=>t+r.ok,0),ms=l.reduce((t,r)=>t+(r.miss??r.n-r.ok),0);
   const acc=ok+ms?Math.round(ok/(ok+ms)*100):0,{id,clear,w,s}=last;
-  return `【Dopa-Math 学習報告】\n本日のトレーニング（${n}問・正解率${acc}%）を完了しました💮\n学習内容：ステージ${id}「${stageTopic(w,s)}」${clear?"クリア":"に取り組みました"}`+(oyaPct()>=100?"\n本日の目標を達成しました✅":"");
+  return `【${APP.name} 学習報告】\n本日のトレーニング（${n}問・正解率${acc}%）を完了しました💮\n学習内容：ステージ${id}「${stageTopic(w,s)}」${clear?"クリア":"に取り組みました"}`+(oyaPct()>=100?"\n本日の目標を達成しました✅":"");
 }
 $("#share").onclick=async()=>{
   const t=shareText();

@@ -12,9 +12,10 @@ const files = ["engine.test.js", "plus.test.js", ...fs.readdirSync(path.join(__d
   let pass = 0, fail = 0;
   for (const f of files) {
     // path: どのアプリを開くか（ドパマス＋のテストは "plus/"）
-    const { tests, modes = ["local", "firebase"], path = "" } = require("./" + f);
+    // init: ページの読み込み前に入れるスクリプト（例：ニセの Capacitor）
+    const { tests, modes = ["local", "firebase"], path = "", init } = require("./" + f);
     for (const mode of modes) for (const { name, fn } of tests) {
-      const t = await open(mode, { path });
+      const t = await open(mode, { path, init });
       const label = `${f} [${mode}] ${name}`;
       try {
         await fn(t);

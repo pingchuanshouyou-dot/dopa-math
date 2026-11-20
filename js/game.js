@@ -162,13 +162,13 @@ function correct(){
     const dmg=Math.round(BASE_DMG*(1+.1*(combo-1))*(crit?2:1)*sp);
     hp-=dmg;fx($("#bEmo"),"hit");
     const d=$("#dmg");d.textContent=(crit?"CRITICAL!! ":"")+"−"+dmg;d.classList.toggle("crit",crit);fx(d,"go");
-    if(crit){fx($("#app"),"bigshake");sfxCrit();if(navigator.vibrate)navigator.vibrate([20,20,40])}
+    if(crit){fx($("#app"),"bigshake");sfxCrit();haptic("crit")}
     if(hp>0)say(crit?pick1(SAY.crit):pick1([foe.ow,...SAY.hurt]));
   }
   if(combo%5===0){fever=5;pop("FEVER!!")}else{if(fever>0)fever--;if(!crit||kind==="normal")pop(WORDS[rnd(0,WORDS.length-1)])}
   if(kind!=="normal"&&hp<=0){hud();sfxOk(combo);burst();$("#bEmo").classList.add("dead");pop("撃破！！");say(SAY.lose,1200);later(()=>finish("clear"),900);return}
   sfxOk(combo);burst();
-  if(navigator.vibrate)navigator.vibrate(12);
+  haptic("ok");
   hud();
   later(()=>{if(kind==="normal"&&done>=NORMAL_N){finish("clear");return}nextQ();busy=false},100);
 }
@@ -177,7 +177,7 @@ function hurt(){
   misses++;tplMiss[q.tpl]=(tplMiss[q.tpl]||0)+1;
   combo=0;fever=0;hearts=Math.max(0,hearts-1);sfxNg();
   card.classList.remove("hit");card.classList.add("miss");
-  fx($("#stage"),"shake");if(navigator.vibrate)navigator.vibrate([30,30,30]);
+  fx($("#stage"),"shake");haptic("ng");
   if(kind!=="normal"){fx($("#bEmo"),"atk");fx($("#flash"),"go");say(hearts>0?pick1(SAY.taunt):SAY.win)}
   hud();
   if(kind!=="normal"&&hearts<=0){later(()=>finish("lose"),700);return true}
@@ -210,7 +210,7 @@ function kiss(x,y){
 $("#pad").addEventListener("pointerdown",e=>{
   const b=e.target.closest(".key");if(!b)return;
   e.preventDefault();
-  fx(b,"on");kiss(e.clientX,e.clientY);
+  fx(b,"on");kiss(e.clientX,e.clientY);haptic("tap");
   press(b.dataset.k);
 });
 document.addEventListener("keydown",e=>{
@@ -290,8 +290,7 @@ function shareText(){
 }
 $("#share").onclick=async()=>{
   const t=shareText();
-  if(navigator.share){try{await navigator.share({text:t});return}catch(e){}}
-  window.open("https://line.me/R/msg/text/?"+encodeURIComponent(t),"_blank");
+  await shareOut(t,"学習レポートを送る");
 };
 $("#again").onclick=()=>startStage(last.w,last.s);
 $("#nextSt").onclick=()=>{const nx=nextOf(last.w,last.s);if(nx){mapW=nx[0];startStage(nx[0],nx[1])}};

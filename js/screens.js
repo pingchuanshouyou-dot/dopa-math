@@ -105,13 +105,13 @@ const starSum=()=>Object.values(myProg).reduce((t,v)=>t+v,0);
 const skinOk=k=>{const n=SKINS[k].need;return !n||(n.stars?starSum()>=n.stars:rankOf(myXp)>=n.rank)};
 const skinsOpen=()=>Object.keys(SKINS).filter(skinOk);
 const skinKey=()=>APP.key+"-skin:"+(me?me.id:"");
-function loadSkin(){try{return JSON.parse(localStorage.getItem(skinKey()))||{}}catch(e){return {}}}
+function loadSkin(){try{return JSON.parse(Store.get(skinKey()))||{}}catch(e){return {}}}
 function applySkin(){
   const {skin,oshi}=me?loadSkin():{},k=skin&&SKINS[skin]&&skinOk(skin)?skin:"base",r=document.documentElement;
   if(k==="base")r.removeAttribute("data-skin");else r.dataset.skin=k;
   if(oshi)r.style.setProperty("--oshi",oshi);
 }
-function saveSkin(v){try{localStorage.setItem(skinKey(),JSON.stringify({...loadSkin(),...v}))}catch(e){}applySkin();drawSkins()}
+function saveSkin(v){Store.set(skinKey(),JSON.stringify({...loadSkin(),...v}));applySkin();drawSkins()}
 function drawSkins(){
   const cur=loadSkin().skin||"base";
   $("#skins").innerHTML=Object.entries(SKINS).map(([k,v])=>{const ok=skinOk(k),n=v.need;

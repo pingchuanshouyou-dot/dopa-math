@@ -10,6 +10,7 @@ const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
      {a/b}    → 分数
      []       → 答えを入れる穴 □
      <<..>>   → ヒントで光らせる所
+     ⟦..⟧     → 途中で改行しないかたまり（log|..| など）
      ∫[a|b]   → 下端 a・上端 b の定積分 */
 const SUP={"0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹","+":"⁺","−":"⁻","x":"ˣ","(":"⁽",")":"⁾"," ":""};
 const close=(s,i,o,c)=>{let d=0;for(let j=i;j<s.length;j++){if(s[j]===o)d++;else if(s[j]===c&&--d===0)return j}throw new Error("閉じていない: "+s)};
@@ -34,6 +35,8 @@ function render(s){
   const flush=()=>{if(run){h+=tk(run);t+=run;run=""}};
   for(let i=0;i<s.length;){
     if(s.startsWith("<<",i)){flush();h+='<span class="nd" data-i="1">';i+=2}
+    else if(s[i]==="⟦"){flush();h+='<span class="nw">';i++}
+    else if(s[i]==="⟧"){flush();h+="</span>";i++}
     else if(s.startsWith(">>",i)){flush();h+="</span>";i+=2}
     else if(s.startsWith("[]",i)){flush();h+=tk('<b class="bl">□</b>');t+="□";i+=2}
     else if(s.startsWith("∫[",i)){flush();const j=s.indexOf("]",i),[lo,hi]=s.slice(i+2,j).split("|").map(inner);
@@ -92,7 +95,7 @@ const T={
   w1_exp:{n:"eˣ と 1/x の不定積分",h:"💡 eˣ は積分しても eˣ のまま。1/x を積分すると log|x|",f:g=>{
     const a=g.s()*g.n(1,g.k(3,5,9));
     return g.c(2)?{d:`∫ ${cf(a)}<<e^x>> dx = []e^x + C`,ans:a,f:x=>a*Math.exp(x),F:(x,A)=>A*Math.exp(x)}
-                 :{d:`∫ ${a<0?"−":""}<<{${Math.abs(a)}/x}>> dx = [] log|x| + C`,ans:a,f:x=>a/x,F:(x,A)=>A*Math.log(Math.abs(x))}}},
+                 :{d:`∫ ${a<0?"−":""}<<{${Math.abs(a)}/x}>> dx = [] ⟦log|x|⟧ + C`,ans:a,f:x=>a/x,F:(x,A)=>A*Math.log(Math.abs(x))}}},
   w1_root:{n:"分数・ルートの不定積分",h:"💡 1/x² は x⁻²、√x は x^(1/2) と書きかえてから積分しよう",f:g=>{
     if(g.c(2)){const a=g.s()*g.n(1,g.k(3,5,7));
       return{d:`∫ ${a<0?"−":""}<<{${Math.abs(a)}/x^2}>> dx = {[]/x} + C`,ans:-a,f:x=>a/x**2,F:(x,A)=>A/x}}
@@ -111,7 +114,7 @@ const T={
                  :{d:`∫ sin(<<${u}>>) dx = −{1/[]} cos(${u}) + C`,ans:a,f:x=>Math.sin(a*x+b),F:(x,A)=>-Math.cos(a*x+b)/A}}},
   w2_recip:{n:"1/(ax+b) の不定積分",h:"💡 log|ax+b| の形。微分すると中身の微分が前に出てくるよ",f:g=>{
     const a=g.n(2,g.k(3,5,7)),b=g.s()*g.n(1,g.k(3,5,7)),u=lin(a,b);
-    return{d:`∫ <<{1/${u}}>> dx = {1/[]} log|${u}| + C`,ans:a,f:x=>1/(a*x+b),F:(x,A)=>Math.log(Math.abs(a*x+b))/A}}},
+    return{d:`∫ <<{1/${u}}>> dx = {1/[]} ⟦log|${u}|⟧ + C`,ans:a,f:x=>1/(a*x+b),F:(x,A)=>Math.log(Math.abs(a*x+b))/A}}},
   w2_root:{n:"√(ax+b) の不定積分",h:"💡 √ は ½ 乗。½+1 = 3/2 乗にして、3/2 と中身の微分で割ろう",f:g=>{
     const a=g.n(2,g.k(3,4,5)),b=g.n(1,g.k(3,5,7)),u=lin(a,b);
     return{d:`∫ √(<<${u}>>) dx = {2/[]}(${u})√(${u}) + C`,ans:3*a,f:x=>Math.sqrt(a*x+b),F:(x,A)=>2/A*(a*x+b)**1.5}}},
@@ -134,7 +137,7 @@ const T={
   w3_log:{n:"分子が分母の微分になっている積分",h:"💡 分母を微分すると分子になっている！ そういうときは log|分母|",f:g=>{
     const p=g.s()*g.n(1,g.k(3,4,5)),q=g.s()*g.n(1,g.k(3,5,7)),k=g.s()*g.n(1,g.k(2,3,5));
     const den=`x^2${sgn(p)}${term(p,1)}${sgn(q)}${Math.abs(q)}`,top=`2x${sgn(p)}${Math.abs(p)}`,K=Math.abs(k);
-    return{d:`∫ ${k<0?"−":""}<<{${K===1?top:`${K}(${top})`}/${den}}>> dx = [] log|${den}| + C`,ans:k,
+    return{d:`∫ ${k<0?"−":""}<<{${K===1?top:`${K}(${top})`}/${den}}>> dx = [] ⟦log|${den}|⟧ + C`,ans:k,
       f:x=>k*(2*x+p)/(x*x+p*x+q),F:(x,A)=>A*Math.log(Math.abs(x*x+p*x+q))}}},
   w3_lnpow:{n:"置換積分（log x・eˣ をまとめて t）",h:"💡 光っている所を t とおくと、残りがちょうど dt になるよ",f:g=>{
     const n=g.n(2,g.k(3,4,5));

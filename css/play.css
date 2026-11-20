@@ -87,6 +87,15 @@ footer{display:flex;flex-direction:column;align-items:center;margin-top:12px}
 @keyframes kp{from{transform:translate(-50%,-50%) scale(.5);opacity:1}to{transform:translate(calc(-50% + var(--dx)),-95px) scale(1.15);opacity:0}}
 .key.neg{color:var(--pink)}
 .key.fn{color:var(--sub);font-size:24px}
+/* iPad など大きい画面：スマホ用の細い作りのままだとすき間が空くので、カード・数式・テンキーを大きくする */
+@media (min-width:700px) and (min-height:900px){
+  #app{max-width:640px}
+  .card{max-width:600px;max-height:460px}
+  #eqQ{font-size:56px}#eqQ.s{font-size:44px}#eqQ.xs{font-size:34px}
+  #eqR{font-size:84px}
+  .pad{max-width:600px;gap:14px}
+  .key{height:clamp(66px,7vh,92px);font-size:38px}
+}
 .p{position:fixed;pointer-events:none;font-size:22px;z-index:5;animation:fly .7s ease-out forwards}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
 .shake{animation:sh .3s}

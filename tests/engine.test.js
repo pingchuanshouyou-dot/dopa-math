@@ -51,6 +51,7 @@ async function survey(t, N) {
 
 let data;
 const get = async t => data || (data = await survey(t, 800));
+exports.survey = survey;  // tests/heavy.js でも同じチェックを大量に回す
 
 exports.modes = ["local"];
 exports.tests = [

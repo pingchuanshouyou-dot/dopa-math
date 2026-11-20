@@ -203,6 +203,7 @@ npx playwright install chromium
 |---|---|
 | `npm test` | 問題づくりのチェックと、スマホサイズのブラウザで実際に遊ぶテスト。遊ぶテストは「端末に保存」と「ニセFirebase」の両方のモードで動かす |
 | `npm test -- engine` | ファイル名の一部を付けると、そのテストだけ動かす |
+| `npm run test:heavy` | 重いテスト。ドパマス約53万問・ドパマス＋約32万問を作って答えの正しさを確かめる（数十秒）。問題の作り方を変えたとき・リリースの前に動かす。`node tests/heavy.js 10` で10倍 |
 | `npm run shot` | 主な画面14枚の写真を `tests/shots/now` に撮る |
 | `npm run compare` | `tests/shots/before` と `tests/shots/now` の写真を1ピクセル単位で比べる |
 

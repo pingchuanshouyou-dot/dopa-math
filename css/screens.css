@@ -115,6 +115,18 @@
 #res .cta{width:100%;max-width:320px}
 #res .cta.alt{width:auto}
 #share{order:1}#again.cta.alt,#toMap{order:2}  /* リトライを出すときだけ #again がレポートを送るボタンより上に来る */
+/* 保護者メニュー・保護者ゲート・休みの画面 */
+#parent{justify-content:flex-start;overflow-y:auto;padding-top:calc(64px + env(safe-area-inset-top,0px))}
+#parent h1,#rest h1{font-size:clamp(30px,9vw,40px)}
+.pset{display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;text-align:left}
+.pset label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:14px;background:var(--card);border-radius:16px;padding:12px 14px}
+.pset select{font:inherit;font-size:16px;padding:10px;border-radius:12px;border:2px solid rgba(127,127,160,.3);background:var(--bg1);color:var(--text)}
+.pset .pchk{flex-direction:row;align-items:center;gap:10px;font-weight:700;line-height:1.5}
+.pset .pchk input{width:22px;height:22px;flex:none;accent-color:var(--pink)}
+#parent .ptoday{font-size:18px;font-weight:900;color:var(--text)}
+#gate{z-index:30}
+#gate input{font:inherit;font-size:24px;text-align:center;width:160px;padding:10px;border-radius:14px;border:2px solid var(--pink);background:var(--bg1);color:var(--text)}
+#res .care{background:var(--card);border-radius:14px;padding:10px 14px;font-weight:800;color:var(--text)}
 /* 連続記録と着せ替え */
 #streak{font-size:13px;padding:8px 13px}
 #streak.cold{opacity:.85}

@@ -17,7 +17,7 @@ function setUser(u){
     // 遊べる中でいちばん先のワールドをマップに出す
     mapW=0;while(mapW<WORLDS.length-1&&unlocked(mapW+1,0))mapW++;
   }).catch(e=>console.error(e)):Promise.resolve();
-  return loadP.then(()=>{applySkin();opening()});
+  return loadP.then(()=>{applySkin();applyCalm();opening()});
 }
 window.onAuth=setUser;
 

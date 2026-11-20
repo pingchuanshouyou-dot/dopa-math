@@ -66,8 +66,9 @@
   <button class="topbtn l" id="authBack">← 戻る</button>
   <h1 id="authT"></h1>
   <form class="form" id="authF" novalidate>
-    <label>名前<input id="aName" autocomplete="username" maxlength="20" autocapitalize="off"></label>
-    <label>パスワード <small>6文字以上</small><span class="pw"><input id="aPw" type="password"><button type="button" id="aEye" aria-label="パスワードを表示" aria-pressed="false">👁️</button></span></label>
+    <label><span id="aNameT">名前</span><input id="aName" autocomplete="username" maxlength="20" autocapitalize="off"></label>
+    <label id="aPwL">パスワード <small>6文字以上</small><span class="pw"><input id="aPw" type="password"><button type="button" id="aEye" aria-label="パスワードを表示" aria-pressed="false">👁️</button></span></label>
+    <p class="note" id="aNote" hidden>ニックネームはこの端末の中にだけ保存して、外には送りません</p>
     <p class="err" id="aErr"></p>
     <button class="cta" id="aGo"></button>
   </form>

@@ -3,8 +3,10 @@
 /* ---------- アプリ ----------
    name: 画面や学習レポートの文面に出る名前
    key:  この端末に保存するときの名前の頭（アプリごとに変えて、記録が混ざらないようにする）
-   db:   Firebase に保存する場所の名前 */
-const APP={name:"Dopa-Math",key:"dopamath",db:"users"};
+   db:   Firebase に保存する場所の名前
+   account: "login"（名前＋パスワード、Firebase も使える）／"nickname"（ニックネームだけ。端末の外に何も送らない）／
+            "auto"（iPhone アプリの中では nickname、ブラウザでは login） */
+const APP={name:"Dopa-Math",key:"dopamath",db:"users",account:"auto"};
 // ランクの称号（ランク1〜10、11〜20、…、91〜100）
 const TIERS=["計算デビュー🐣","ゆる計算ちゃん🌱","マイナスなかよし🫧","カッコ攻略中🎀","九九ガチ勢🌶️","計算ちょい盛れ✨","四則インフルエンサー📱","分数マスター🔮","計算のカリスマ💎","計算の女神👑"];
 

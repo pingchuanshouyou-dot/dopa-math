@@ -55,7 +55,9 @@ async function open(mode = "local", opts = {}) {
     // 1文字目からまちがえる
     async wrong() { const a = await ev(() => String(q.ans)); await key(a[0] === "-" ? "1" : "-"); },
     async register(name = "テスト", pw = "secret1") {
-      await page.click("#goReg"); await page.fill("#aName", name); await page.fill("#aPw", pw); await page.click("#aGo");
+      await page.click("#goReg"); await page.fill("#aName", name);
+      if (await page.isVisible("#aPw")) await page.fill("#aPw", pw);  // ニックネームだけのモード（アプリの中）はパスワードなし
+      await page.click("#aGo");
       await page.waitForTimeout(400);
     },
     // ステージを最後まで正解で進める

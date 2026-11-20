@@ -65,8 +65,8 @@ $("#sheet").onclick=e=>{if(e.target.id==="sheet")$("#sheet").hidden=true};
 function screen(id){document.querySelectorAll(".ov").forEach(o=>o.hidden=o.id!==id)}
 function opening(){
   $("#opLoad").hidden=true;$("#opGuest").hidden=!!me;$("#opUser").hidden=!me;
-  if(me)$("#opWho").textContent=`${me.name} としてログイン中`;
-  $("#opNote").textContent=cloud.mode==="local"?"※ Firebaseが未設定なので、いまはこの端末の中だけに保存しています":"";
+  if(me)$("#opWho").textContent=NICK?`${me.name} で遊ぶ`:`${me.name} としてログイン中`;
+  $("#opNote").textContent=NICK?"記録とニックネームは、この端末の中だけに保存されます":cloud.mode==="local"?"※ Firebaseが未設定なので、いまはこの端末の中だけに保存しています":"";
 }
 
 /* ---------- ランク（1〜100） ----------

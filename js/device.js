@@ -3,8 +3,10 @@
    ほかのファイルは navigator.vibrate や localStorage を直接さわらず、ここを通す。
    アプリにするときに入れるプラグイン: @capacitor/haptics・@capacitor/share・@capacitor/preferences */
 
+// iPhone アプリ（Capacitor）の中で動いているか
+const IN_APP=!!window.Capacitor?.isNativePlatform?.();
 // Capacitor のプラグイン（アプリの中で、そのプラグインが入っているときだけある）
-const plugin=n=>window.Capacitor?.isNativePlatform?.()?window.Capacitor.Plugins?.[n]||null:null;
+const plugin=n=>IN_APP?window.Capacitor.Plugins?.[n]||null:null;
 
 /* ---------- 振動 ----------
    tap: キーを押した  ok: 正解  ng: まちがい・時間切れ  crit: クリティカル

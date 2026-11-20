@@ -107,7 +107,7 @@ hotfix/login-error
 | `skin` | 着せ替え |
 | `auth` | 新規登録・ログイン |
 | `record` | 記録・連続記録・保存 |
-| `share` | LINEシェア |
+| `share` | 学習レポートの共有 |
 
 ### 例
 

@@ -18,10 +18,10 @@ body.fever{background:linear-gradient(120deg,#ff2d8f,#ffb300,#7a3cff,#00c2ff);ba
 button{font-family:inherit}
 .bar{height:10px;border-radius:99px;background:rgba(127,127,160,.25);margin-top:8px;overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--pink),var(--gold));border-radius:99px;transition:width .3s}
-/* 親黙らせ（TikTok解禁）ゲージ */
+/* ごほうびゲージ：今日の正解でたまる */
 .oya{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;margin-top:6px}
 .oya .bar{flex:1;margin:0;height:12px}
-.oya .bar i{background:linear-gradient(90deg,#00f2ea,#ff0050)}
+.oya .bar i{background:linear-gradient(90deg,#3ddc97,var(--gold))}
 .oya b{white-space:nowrap;font-size:12px}
 .oya.full b{color:var(--pink)}
 /* 画面いっぱいの画面 */

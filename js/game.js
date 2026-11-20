@@ -127,7 +127,7 @@ function hud(){
   drawOya("P");
 }
 
-/* ---------- 親黙らせ（TikTok解禁）ゲージ：今日の正解数 ---------- */
+/* ---------- ごほうびゲージ：今日の正解数 ---------- */
 const today=()=>new Date().toDateString();
 const todays=()=>myRecs.filter(r=>new Date(r.at).toDateString()===today());
 // 残り問題数は見せずにパーセントだけ。FEVER中の正解は2ポイントでゲージがぐんぐん伸びる
@@ -135,7 +135,7 @@ function oyaPct(){const t=todays().reduce((t,r)=>t+(r.pts??r.ok),0)+(running?pts
 function drawOya(k){
   const p=oyaPct();
   $("#oyaBar"+k).style.width=p+"%";
-  $("#oyaTxt"+k).textContent=p>=100?"解禁🎉":p+"%";
+  $("#oyaTxt"+k).textContent=p>=100?"達成🎉":p+"%";
   $("#oya"+k).classList.toggle("full",p>=100);
 }
 
@@ -265,7 +265,7 @@ function finish(how){
   $("#rA").textContent=(okN+misses?Math.round(okN/(okN+misses)*100):0)+"%";
   $("#rC").textContent=maxCombo;$("#rT").textContent=dur(tSum);
   const p=oyaPct();
-  $("#rM").textContent=p>=100?"📱 TikTok解禁ゲージ 100%！今日はもう胸張っていいよ🎉":`📱 TikTok解禁ゲージ ${p}%`;$("#rB").style.width=p+"%";
+  $("#rM").textContent=p>=100?"🎁 ごほうびゲージ 100%！今日の目標クリア🎉":`🎁 ごほうびゲージ ${p}%`;$("#rB").style.width=p+"%";
   const w=Object.keys(tplMiss).sort((a,b)=>tplMiss[b]-tplMiss[a])[0];
   const gate=clear&&kind==="normal"&&stars<2;
   $("#rW").textContent=how==="lose"?"🧪 弱体化を使えば、数字が小さくなってボスに挑みやすくなるよ":gate?`❤️を${STAR2}つ以上残して★2を取ると、次のステージが開くよ！`:w?`次に伸ばせるのは「${T[w].n}」（ミス${tplMiss[w]}回）。手が止まると最初に計算する所が光るよ`:"ノーミス！天才すぎ✨";

@@ -8,7 +8,7 @@ const norm=n=>n.normalize("NFKC").toLowerCase();
 async function sha(t){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}
 const fail=code=>Object.assign(new Error(code),{code});
 let cloud;
-if(FIREBASE_CONFIG.apiKey){
+if(FIREBASE_CONFIG.apiKey&&!NICK){  // ニックネームだけのモードでは、設定があっても Firebase は使わない
   const [{initializeApp},A,F]=await Promise.all(["firebase-app","firebase-auth","firebase-firestore"].map(m=>import(V+m+".js")));
   const app=initializeApp(FIREBASE_CONFIG),auth=A.getAuth(app),db=F.getFirestore(app);
   // Firebaseはメールアドレスでしか登録できないので、名前から決まった形のアドレスを作る
@@ -47,7 +47,12 @@ if(FIREBASE_CONFIG.apiKey){
     async getProfile(){const x=load()[Store.get(MK)]||{};return {xp:x.xp??null,prog:x.prog||{}}},
     async setXp(v){edit(x=>x.xp=v)},
     async addXp(v){edit(x=>x.xp=(x.xp||0)+v)},
-    async saveProg(id,stars){edit(x=>{x.prog=x.prog||{};x.prog[id]=stars})}
+    async saveProg(id,stars){edit(x=>{x.prog=x.prog||{};x.prog[id]=stars})},
+    // ニックネームだけのモード：この端末に1人分だけ。パスワードは持たない
+    ...(NICK?{
+      async register(name){const u=load(),k="_";u[k]=u[k]?{...u[k],name}:{name,recs:[]};keep(u);Store.set(MK,k);return who(k)},
+      async rename(name){edit(x=>x.name=name);return who(Store.get(MK))}
+    }:{})
   };
   window.cloud=cloud;
   onAuth(who(Store.get(MK))||null);
